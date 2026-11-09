@@ -2,6 +2,7 @@
 
 import base64
 import html
+import xml.etree.ElementTree as ET
 from io import BytesIO
 from pathlib import Path
 
@@ -99,7 +100,7 @@ def proofs(glyph_order):
     write_svg("Bathys-glyph-proof.svg", body, 1400, 1600)
     interlock_proof()
     reference_proof()
-    direction_proof()
+    detail_proof()
 
 
 def interlock_proof():
@@ -122,8 +123,8 @@ def interlock_proof():
             sequence.lower(), x, y + 253, 62, "#a77b45", {"dlig": True, "smcp": True}
         )
     y = height - 270
-    body += label("SEA FLOURISHES / SS01", 60, y)
-    body += svg_text("THE SEA", 60, y + 205, 230, "#102b2b", {"ss01": True})
+    body += label("DEFAULT SPIRAL S", 60, y)
+    body += svg_text("THE SEA", 60, y + 205, 230, "#102b2b")
     body += label("O / ZERO / SLASHED ZERO", 1090, y)
     body += svg_text("O 0", 1090, y + 105, 105, "#102b2b")
     body += svg_text("0", 1090, y + 225, 105, "#102b2b", {"zero": True})
@@ -152,30 +153,53 @@ def reference_proof():
             word, 1200, y + 25 + (baseline - cy) * 2, cap * 2 / 700 * 1000, "#eee8d8"
         )
     body += label(
-        "CHECK: HORIZONTAL C ENDS / OPEN R THROAT / BA COUNTER / EY JOIN / FIRST N PLAIN, SECOND N TAILED",
+        "CHECK: HORIZONTAL C ENDS / OPEN R THROAT / BA COUNTER / CONTINUOUS EY / SECOND N UPPER RETURN",
         50,
         1430,
     )
     write_svg("Bathys-reference-study.svg", body, 2350, 1480)
 
 
-def direction_proof():
-    body = '<rect width="1600" height="1640" fill="#eee8d8"/>'
-    body += label("BATHYS / THREE DIRECTIONS / SAME OUTLINE FAMILY", 65, 65)
-    for i, (title, features, width) in enumerate(
-        [
-            ("01 / COVER LETTERING / DEFAULT", {}, 1),
-            ("02 / SEA FLOURISHES / SS01", {"ss01": True}, 1),
-            ("03 / WIDE & INTERLOCKING / WDTH 115 + DLIG", {"dlig": True}, 1.15),
-        ]
-    ):
-        y = 160 + i * 485
+def detail_proof():
+    source = base64.b64encode(
+        (ROOT / "extract/reference/sea.jpg").read_bytes()
+    ).decode()
+    body = '<rect width="1700" height="2400" fill="#102b2b"/>'
+    body += f'<defs><image id="cover" href="data:image/jpeg;base64,{source}" width="1360" height="1360"/></defs>'
+    body += label("BATHYS / SOURCE LEFT / DRAWING RIGHT / MATCHED CAP HEIGHTS", 65, 65)
+    rows = [
+        ("S / DESCENDING SPIRAL", "S", (194, 450, 47, 64), 497, 42, 6, 140),
+        ("N / UPPER HORIZONTAL RETURN", "N", (395, 69, 107, 133), 194, 120, 3.5, 690),
+        ("EY / CONTINUOUS TOP BAR", "EY", (279, 194, 160, 125), 316, 118, 3.5, 1280),
+        (
+            "H / RISING BRIDGE, FULL WEIGHT, NO LOOP",
+            "H",
+            (128, 452, 36, 55),
+            498,
+            43,
+            6,
+            1850,
+        ),
+    ]
+    for title, word, (cx, cy, cw, ch), baseline, cap, scale, y in rows:
         body += label(title, 65, y)
-        words = svg_text("THE SEA", 0, 0, 205, "#102b2b", features)
-        body += f'<g transform="translate(65 {y + 210}) scale({width} 1)">{words}</g>'
-        words = svg_text("AFTER THE STARS", 0, 0, 103, "#102b2b", features)
-        body += f'<g transform="translate(65 {y + 350}) scale({width} 1)">{words}</g>'
-    write_svg("Bathys-directions.svg", body, 1600, 1640)
+        body += f'<svg x="85" y="{y + 30}" width="{cw * scale}" height="{ch * scale}" viewBox="{cx} {cy} {cw} {ch}"><use href="#cover"/></svg>'
+        body += svg_text(
+            word,
+            900,
+            y + 30 + (baseline - cy) * scale,
+            cap * scale / 700 * 1000,
+            "#eee8d8",
+        )
+        if word == "S":
+            contour = (
+                ET.parse(ROOT / "extract/reference/S.svg")
+                .find("{http://www.w3.org/2000/svg}path")
+                .attrib["d"]
+            )
+            body += label("OUTLINE OVER ORIGINAL", 1300, y)
+            body += f'<svg x="1300" y="{y + 30}" width="{cw * scale}" height="{ch * scale}" viewBox="{cx} {cy} {cw} {ch}"><use href="#cover"/><path d="{contour}" fill="none" stroke="#42dfe8" stroke-width=".12"/></svg>'
+    write_svg("Bathys-detail-study.svg", body, 1700, 2400)
 
 
 def render():
@@ -225,5 +249,5 @@ def render():
     text("CO OR COR BA RA NN EY", 60, 1800, 90)
     text("abcdefghijklmnopqrstuvwxyz", 60, 1890, 95, features={"smcp": True})
     text("WE ORBIT THE SAME SUN.", 60, 1990, 78)
-    text("THE SEA", 60, 2110, 140, features={"ss01": True})
+    text("THE SEA", 60, 2110, 140)
     im.save(ROOT / "svg/Bathys-rendered-proof.png")

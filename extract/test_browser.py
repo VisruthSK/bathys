@@ -50,8 +50,7 @@ with sync_playwright() as p:
     assert page.evaluate(measure) > normal * 1.12, (
         "Variable width must change actual glyph layout"
     )
-    page.get_by_role("button", name="Sea flourishes", exact=True).click()
-    assert page.locator("#sea").is_checked()
+    page.locator("#type").fill("THE SEA\nAFTER THE STARS")
     assert page.locator("#type").inner_text() == "THE SEA\nAFTER THE STARS"
     page.locator("#theme").click()
     assert page.locator("body").evaluate('(e)=>e.classList.contains("dark")')
@@ -64,7 +63,7 @@ with sync_playwright() as p:
     )
     assert not errors, errors
     page.set_viewport_size({"width": 1600, "height": 1640})
-    for name in ["directions", "reference-study", "ligatures"]:
+    for name in ["detail-study", "reference-study", "ligatures"]:
         page.set_content(
             f'<img style="width:1580px" src="http://127.0.0.1:8765/svg/Bathys-{name}.svg">'
         )

@@ -1,6 +1,6 @@
 # Bathys: reference audit and drawing decisions
 
-The artist-name lettering and the thin **THE SEA** subtitle are two different constructions. The default follows the artist name. `ss01` borrows the subtitle’s flowing vocabulary without replacing the default. Letters visible in the artist name are **A B C E I L N O R Y**; the other capitals, numerals and punctuation extend those forms.
+The artist-name lettering and the thin **THE SEA** subtitle are two different constructions. Bathys follows the artist name, with its ordinary S drawn from the subtitle’s large descending spiral. Letters visible in the artist name are **A B C E I L N O R Y**; the other capitals, numerals and punctuation extend those forms.
 
 ## What the enlarged covers show
 
@@ -12,12 +12,15 @@ The artist-name lettering and the thin **THE SEA** subtitle are two different co
 | A | Rising left diagonal, vertical right stem, low crossbar. The supplied Glyphr drawing is retained as the starting geometry. |
 | B / BA | Smaller upper bowl, larger lower bowl. A enters the lower bowl, leaving a narrow almond of background beside the diagonal. That opening is drawn explicitly, rather than trusting a union of two stock letters. |
 | I / L | Simple vertical and foot; their close spacing contributes to BAILEY’s rhythm. |
-| E / EY | Square arms; E’s top bar touches the beginning of Y’s left diagonal. EY is a standard ligature. |
+| E / EY | Square arms; E’s top bar continues at full depth into Y’s left diagonal. EY has a custom bridge so the underside has no notch. FY uses the same construction. |
 | Y | Narrow fork, straight stem, flat terminals. |
-| N / NN | Small pointed tail on the stock N. NN uses a plain first N and a tailed second N, with separately adjusted spacing. |
-| THE SEA | Thin strokes, descending T/H loop, folded E, spiral S and bowed A crossbar. Optional Sea outlines use that vocabulary. |
+| N / NN | The flourish is a horizontal return at the TOP of the right stem. There is no spur below the baseline. NN has a narrower plain first N, a slightly wider returning second N, and an open gap between their stems. |
+| S | The subtitle’s outer and inner edges are hand-fitted in source-image coordinates in `reference/S.svg`, using the neighbouring E to set the cap height and baseline. The lower loop descends below that baseline, and its inward return and counter remain open. This is the default S. |
+| H | The subtitle’s crossbar curves out of the lower left stem and rises into the right stem. Bathys keeps the main 66-unit stroke and straight stems; the bottom-left loop is omitted. |
 
-`Bathys-reference-study.svg` places the original raster lettering beside the new outlines at the same cap height. `Bathys-ligatures.svg` shows every interlock at two sizes, alongside its unligated counterpart. The full original covers remain under `reference/` for comparison.
+`Bathys-reference-study.svg` places the original raster lettering beside the new outlines at the same cap height. `Bathys-detail-study.svg` enlarges S, N, EY and H individually, and overlays the finished S contours on the original. `Bathys-ligatures.svg` shows every interlock at two sizes, alongside its unligated counterpart. The full original covers remain under `reference/` for comparison.
+
+The optional `uv run extract/trace_s.py` extracts the S silhouette into `generated/S-extracted.svg` for comparison. The final outline is finished by hand in `reference/S.svg`; the extraction script does not overwrite it. This avoids carrying the JPEG’s edge noise into the font. Two connections to the neighbouring E are separated along the S’s visible outer curvature.
 
 ## Drawing and spacing
 
@@ -40,6 +43,6 @@ The artist-name lettering and the thin **THE SEA** subtitle are two different co
 
 G follows the circular construction with an inward shelf, rather than the first build’s dangling vertical. Zero is a narrower oval, with an optional slash. Nine has an upright upper bowl and a descending return, rather than a rotated six.
 
-The extra interlocks use three recurring devices: overlapping circles, shared vertical stems and joined top bars. They are tested in words as well as pairs. A heavily nested TA was rejected during proofing because the letter identities became ambiguous; TY uses the clearer top-bar relationship already established by EY.
+The extra interlocks use three recurring devices: overlapping circles, shared vertical stems and joined top bars. They are tested in words as well as pairs. FY, ET, FT, TE, AY and NY extend the top-bar relationships; LY connects its foot to Y’s stem. A heavily nested TA was rejected during proofing because the letter identities became ambiguous.
 
 A weight axis needs separate drawing work around BA’s narrow aperture, the R throat and the small-cap counters. The delivered width axis keeps those details intact. Weight is not simulated by thickening the outlines indiscriminately.

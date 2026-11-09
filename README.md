@@ -1,23 +1,22 @@
 # Bathys
 
-Circular display capitals drawn from Corinne Bailey Rae’s **The Sea** and **The Love EP**: an open-throated R, pointed N, asymmetric A, interlocking bowls and close verticals.
+Circular display capitals drawn from Corinne Bailey Rae’s **The Sea** and **The Love EP**: an open-throated R, returning N, asymmetric A, interlocking bowls, a rising H crossbar and the subtitle’s descending spiral S.
 
 **[Open the interactive proof](proof.html)** · [Static OTF](fonts/Bathys-Regular.otf) · [Variable OTF](fonts/Bathys-Variable.otf)
 
-The proof includes a width slider, small caps, ligature switches, Sea flourishes, and three design directions. For close inspection, open the [cover comparison](svg/Bathys-reference-study.svg), [complete ligature sheet](svg/Bathys-ligatures.svg), or [rendered font proof](svg/Bathys-rendered-proof.png). All SVG lettering is outlined.
+The proof includes a width slider, small caps and ligature switches. For close inspection, open the [S/N/EY/H details and S overlay](svg/Bathys-detail-study.svg), [cover comparison](svg/Bathys-reference-study.svg), [complete ligature sheet](svg/Bathys-ligatures.svg), or [rendered font proof](svg/Bathys-rendered-proof.png). All SVG lettering is outlined.
 
 ## OpenType features
 
 | Feature | What it does |
 | --- | --- |
 | `liga` | CO, OR, COR, BA, RA, NN, EY |
-| `dlig` | 21 additional round overlaps, shared stems, joined top bars and longer interlocks |
+| `dlig` | 28 additional round overlaps, shared stems, joined top bars and longer interlocks |
 | `smcp`, `c2sc` | Optical small caps, including every ligature |
-| `ss01` | Sea flourishes: curled S, bowed A, folded E, descending T and looped TH |
 | `zero` | Slashed zero; ordinary zero is already narrower than O |
 | `kern` | Pair spacing inherited by the outside letters of each ligature |
 
-Lowercase input displays as capitals. Keep tracking at zero for the cover setting. The CFF2 variable font has a **width axis from 85–115**, with the reference construction at 100. Static and variable defaults have identical filled outlines and metrics. This is a width family; it does not claim a weight axis.
+Lowercase input displays as capitals. The flowing S is the ordinary S, including in small caps. Keep tracking at zero for the cover setting. The CFF2 variable font has a **width axis from 85–115**, with the reference construction at 100. Static and variable defaults have identical filled outlines and metrics. This is a width family; it does not claim a weight axis.
 
 ```css
 @font-face {

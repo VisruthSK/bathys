@@ -16,7 +16,7 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
 
-from outlines import DLIGS, GLYPHS, LIGS, SEA
+from outlines import DLIGS, GLYPHS, LIGS, SC_NN_GAP
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "fonts"
@@ -103,7 +103,7 @@ def build():
             "FullName": "Bathys Regular",
             "FamilyName": "Bathys",
             "Weight": "Regular",
-            "version": "1.100",
+            "version": "1.200",
         },
         cs,
         {"BlueValues": [-12, 0, 700, 712], "StdHW": 66, "StdVW": 66},
@@ -111,25 +111,25 @@ def build():
     fb.setupHorizontalMetrics(
         {n: (w, round(p.bounds[0]) if len(p) else 0) for n, (p, w) in GLYPHS.items()}
     )
-    fb.setupHorizontalHeader(ascent=820, descent=-180, lineGap=80)
+    fb.setupHorizontalHeader(ascent=820, descent=-260, lineGap=80)
     fb.setupNameTable(
         {
             "familyName": "Bathys",
             "styleName": "Regular",
-            "uniqueFontIdentifier": "Bathys-Regular-1.100",
+            "uniqueFontIdentifier": "Bathys-Regular-1.200",
             "fullName": "Bathys Regular",
             "psName": "Bathys-Regular",
-            "version": "Version 1.100",
-            "description": "Circular display capitals, open-throated R, tailed N, interlocks and Sea flourishes.",
+            "version": "Version 1.200",
+            "description": "Circular display capitals, open-throated R, returning N, interlocks and a spiral S.",
         }
     )
     fb.setupOS2(
         version=4,
         sTypoAscender=820,
-        sTypoDescender=-180,
+        sTypoDescender=-260,
         sTypoLineGap=80,
         usWinAscent=820,
-        usWinDescent=180,
+        usWinDescent=260,
         sCapHeight=700,
         sxHeight=518,
         usWeightClass=400,
@@ -165,14 +165,6 @@ def build():
                     fea.append(f"sub {' '.join(variant)} by {'_'.join(seq) + suffix};")
         fea.append(f"}} {tag};")
     fea.append("feature zero { sub zero by zero.slash; } zero;")
-    fea.append('feature ss01 { featureNames { name "Sea flourishes"; };')
-    for suffix in ["", ".sc"]:
-        fea.append(f"sub T{suffix} H{suffix} by T_H.sea{suffix};")
-        # Discretionary TH may already have been formed.
-        fea.append(f"sub T_H{suffix} by T_H.sea{suffix};")
-        for letter in SEA:
-            fea.append(f"sub {letter}{suffix} by {letter}.sea{suffix};")
-    fea.append("} ss01;")
     kerns = {
         "AV": -65,
         "AW": -48,
@@ -239,19 +231,14 @@ def build():
             for i in range(len(sequence) - 1)
         ]
         for suffix, scale in [("", 1), (".sc", 0.74)]:
-            values = " ".join(str(round(c * scale)) for c in carets)
+            gap = SC_NN_GAP / 2 if suffix and sequence == "NN" else 0
+            values = " ".join(str(round(c * scale + gap)) for c in carets)
             fea.append(f"LigatureCaretByPos {'_'.join(sequence) + suffix} {values};")
-    fea.extend(
-        [
-            "LigatureCaretByPos T_H.sea 490;",
-            "LigatureCaretByPos T_H.sea.sc 363;",
-            "} GDEF;",
-        ]
-    )
+    fea.append("} GDEF;")
     feature_text = "\n".join(fea)
     (GENERATED / "Bathys.fea").write_text(feature_text)
     addOpenTypeFeaturesFromString(fb.font, feature_text)
-    fb.font["head"].fontRevision = 1.1
+    fb.font["head"].fontRevision = 1.2
     fb.font["head"].created = fb.font["head"].modified = (
         int(datetime(2026, 11, 9, tzinfo=UTC).timestamp()) + 2082844800
     )
@@ -288,7 +275,7 @@ def main():
             outline.draw(pen)
             filename = "lower-" + name if len(name) == 1 and name.islower() else name
             (target / f"{filename}.svg").write_text(
-                f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -820 {width + 40} 1020"><path transform="scale(1,-1)" d="{pen.getCommands()}"/></svg>'
+                f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -820 {width + 40} 1100"><path transform="scale(1,-1)" d="{pen.getCommands()}"/></svg>'
             )
     (GENERATED / "glyph-data.json").write_text(
         json.dumps(

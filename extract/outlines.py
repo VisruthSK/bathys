@@ -2,6 +2,7 @@
 
 import json
 import math
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pathops
@@ -61,6 +62,14 @@ def add(name, p, width):
     GLYPHS[name] = (p, round(width))
 
 
+def spiral_s():
+    # Fitted outer and inner cover edges, not a stroked centreline.
+    element = ET.parse(REFERENCE / "S.svg").find("{http://www.w3.org/2000/svg}path")
+    outline = path(element.attrib["d"])
+    scale = 700 / 42
+    return outline.transform(scale, 0, 0, -scale, 24 - 196 * scale, 497 * scale)
+
+
 def alphabet(t=66):
     g = {}
 
@@ -115,7 +124,12 @@ def alphabet(t=66):
     put("F", union(stem, rect(38, 700 - t, 412, t), rect(38, 326, 354, t)), 475)
     G = difference(ring, rect(374, 350, 500, 140))
     put("G", union(G, rect(450, 312, 274, 62)), 748)
-    put("H", union(stem, rect(514, 0, t, 700), rect(38, 326, 542, t)), 618)
+    # Subtitle H's rising crossbar, at the main capitals' stroke weight.
+    # The original descender loop is intentionally omitted.
+    h_bridge = path("M71,205 C71,310 122,359 228,359 L390,359 C495,359 547,410 547,515")
+    h_bridge.stroke(t, pathops.LineCap.BUTT_CAP, pathops.LineJoin.ROUND_JOIN, 2)
+    h_bridge.convertConicsToQuads(0.1)
+    put("H", union(stem, rect(514, 0, t, 700), h_bridge), 618)
     put("I", rect(30, 0, t, 700), 126)
     J = path(
         f"M380,700 L{380 + t},700 L{380 + t},185 C{380 + t},50 345,-12 230,-12 C95,-12 24,65 24,195 L{24 + t},195 C{24 + t},105 135,{t - 12} 230,{t - 12} C325,{t - 12} 380,100 380,185 Z"
@@ -136,19 +150,21 @@ def alphabet(t=66):
     )
     plain_N = union(
         stem,
-        rect(584 - t, 0, t, 700),
-        poly([(38, 700), (116, 700), (584, 0), (506, 0)]),
+        rect(569 - t, 0, t, 700),
+        poly([(38, 700), (116, 700), (569, 0), (491, 0)]),
     )
-    put("N.plain", plain_N, 622)
-    # The second cover N ends in a small pointed tail below the baseline.
+    put("N.plain", plain_N, 607)
+    # The second N has a horizontal return at the TOP of the right stem.
+    # The earlier baseline spur misread the cover and is deliberately absent.
     put(
         "N",
         union(
             stem,
-            rect(584 - t, 0, t, 700),
-            poly([(38, 700), (116, 700), (598, -22), (520, -22)]),
+            rect(606 - t, 0, t, 700),
+            rect(354, 700 - t, 252, t),
+            poly([(38, 700), (116, 700), (606, 0), (528, 0)]),
         ),
-        630,
+        644,
     )
     P = union(stem, hollow(700, 300, 505))
     put("P", P, 545)
@@ -159,10 +175,7 @@ def alphabet(t=66):
         "M38,0 L38,700 L250,700 C409,700 503,624 503,488 C503,353 415,276 303,259 L462,0 L379,0 L173,312 L244,312 C362,312 432,376 432,488 C432,582 362,629 250,629 L109,629 L109,0 Z"
     )
     put("R", R, 536)
-    S = path(
-        "M560,586 C513,666 427,712 308,712 C147,712 45,629 45,511 C45,395 141,348 293,310 C421,278 509,251 509,167 C509,92 434,54 326,54 C212,54 126,103 79,187 L24,151 C86,42 189,-12 326,-12 C479,-12 579,55 579,173 C579,299 471,345 321,383 C195,415 115,446 115,518 C115,590 185,646 307,646 C396,646 461,612 504,551 Z"
-    )
-    put("S", S, 612)
+    put("S", spiral_s(), 738)
     put("T", union(rect(20, 700 - t, 548, t), rect(294 - t / 2, 0, t, 700)), 588)
     U = path(
         f"M38,700 L{38 + t},700 L{38 + t},238 C{38 + t},116 175,54 302,54 C429,54 500,116 500,238 L500,700 L{500 + t},700 L{500 + t},238 C{500 + t},77 470,-12 302,-12 C134,-12 38,77 38,238 Z"
@@ -413,7 +426,7 @@ LIGS = {
     "OR": ([0, 465], 1001),
     "BA": ([0, 235], 871),
     "RA": ([0, 235], 871),
-    "NN": ([0, 558], 1188),
+    "NN": ([0, 543], 1187),
     "EY": ([0, 417], 987),
 }
 DLIGS = {
@@ -433,19 +446,28 @@ DLIGS = {
     "TH": ([0, 445], 1063),
     "TT": ([0, 480], 1068),
     "HE": ([0, 476], 958),
-    "NE": ([0, 480], 962),
+    "NE": ([0, 502], 984),
     "ORA": ([0, 465, 700], 1336),
     "COO": ([0, 355, 900], 1648),
     "OOR": ([0, 545, 1010], 1546),
     "CORO": ([0, 355, 820, 1260], 2008),
+    "FY": ([0, 417], 987),
+    "ET": ([0, 420], 1008),
+    "FT": ([0, 420], 1008),
+    "TE": ([0, 445], 927),
+    "AY": ([0, 515], 1085),
+    "NY": ([0, 538], 1108),
+    "LY": ([0, 90], 660),
 }
+SC_NN_GAP = 9
 for seq, (positions, width) in (LIGS | DLIGS).items():
     for suffix, scale in [("", 1), (".sc", 0.74)]:
+        gap = SC_NN_GAP if suffix and seq == "NN" else 0
         parts = [
             transform(
                 GLYPHS[("N.plain" if seq == "NN" and i == 0 else c) + suffix][0],
                 1,
-                x * scale,
+                x * scale + (gap if i else 0),
             )
             for i, (c, x) in enumerate(zip(seq, positions, strict=True))
         ]
@@ -454,47 +476,11 @@ for seq, (positions, width) in (LIGS | DLIGS).items():
             # Preserve the narrow almond of background inside the lower bowl.
             eye = path("M375,96 C405,116 429,155 432,194 Z")
             outline = difference(outline, transform(eye, scale))
-        add("_".join(seq) + suffix, outline, width * scale + (10 if suffix else 0))
-
-
-def stroke(d, width=62):
-    p = path(d)
-    p.stroke(width, pathops.LineCap.BUTT_CAP, pathops.LineJoin.ROUND_JOIN, 2)
-    p.convertConicsToQuads(0.1)
-    return pathops.simplify(p, fix_winding=True)
-
-
-# Optional flowing vocabulary from the thin THE SEA subtitle: curled S,
-# bowed A crossbar, folded E, and a descending T/H loop. Kept in ss01 so
-# the artist-name capitals stay faithful to their separate construction.
-SEA = {
-    "S": (
-        stroke(
-            "M550,590 C498,696 393,727 322,651 C239,561 335,480 433,418 C560,338 573,169 465,54 C365,-52 211,-54 112,26 C16,103 12,232 101,292 C177,343 268,309 281,235 C295,159 223,101 162,128"
-        ),
-        620,
-    ),
-    "E": (
-        stroke(
-            "M410,678 L60,678 L60,438 Q60,350 136,350 L350,350 M136,350 Q60,350 60,263 L60,22 L410,22"
-        ),
-        454,
-    ),
-    "A": (stroke("M36,0 L558,678 L558,0 M208,234 C359,317 558,278 558,0"), 610),
-    "T": (stroke("M20,678 L556,678 M265,678 L265,80 C265,-145 506,-145 506,80"), 610),
-    "H": (
-        stroke("M60,700 L60,0 M60,270 Q60,350 140,350 L540,350 M540,700 L540,0"),
-        600,
-    ),
-}
-for letter, (outline, width) in SEA.items():
-    add(letter + ".sea", outline, width)
-    add(letter + ".sea.sc", transform(outline, 0.74), width * 0.74)
-# THE's T descender turns into H; the small counterloop is intentional.
-TH = union(
-    stroke(
-        "M20,678 L556,678 M265,678 L265,80 C265,-145 506,-145 506,80 L506,700 M506,100 C506,-55 690,-55 654,67 C628,157 506,124 506,22 M506,270 Q506,350 586,350 L986,350 M986,700 L986,0"
-    )
-)
-add("T_H.sea", TH, 1046)
-add("T_H.sea.sc", transform(TH, 0.74), 1046 * 0.74)
+        if seq in {"EY", "FY"}:
+            # Continue the full depth of E/F's top bar into the sloping Y.
+            # A simple overlap only connects at the cap line and leaves a notch.
+            bridge = rect(438, 634, 38, 66)
+            outline = union(outline, smallcap(bridge) if suffix else bridge)
+        add(
+            "_".join(seq) + suffix, outline, width * scale + gap + (10 if suffix else 0)
+        )

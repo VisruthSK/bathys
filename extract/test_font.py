@@ -103,7 +103,7 @@ class FontProof(unittest.TestCase):
                 self.glyphs[name].draw(pen)
                 if pen.bounds:
                     x0, y0, x1, y1 = pen.bounds
-                    self.assertGreaterEqual(y0, -180)
+                    self.assertGreaterEqual(y0, -260)
                     self.assertLessEqual(y1, 820)
                     self.assertGreaterEqual(x0, -1)
                     self.assertLessEqual(x1, width + 1)
@@ -131,25 +131,57 @@ class FontProof(unittest.TestCase):
             ink("R", (130, 310)), "R must have an open throat beside its stem"
         )
         self.assertTrue(ink("R", (260, 240)), "R bowl must flow into its diagonal leg")
-        self.assertTrue(ink("N", (583, -10)), "Stock N must retain its tail")
-        self.assertFalse(ink("N_N", (583, -10)), "First N in NN must have no tail")
-        self.assertTrue(ink("N_N", (1141, -10)), "Second N in NN must retain its tail")
+        self.assertTrue(ink("N", (360, 670)), "N needs its upper horizontal return")
+        self.assertFalse(ink("N", (583, -10)), "N must not have a baseline spur")
+        self.assertFalse(ink("N_N", (360, 670)), "First N must have no upper return")
+        self.assertTrue(ink("N_N", (903, 670)), "Second N needs its upper return")
+        self.assertFalse(ink("N_N", (575, 350)), "The two Ns must remain separated")
+        self.assertFalse(ink("N_N.sc", (430, 260)), "Small-cap NN must keep its gap")
+        self.assertTrue(
+            ink("N_N.sc", (420, 260)), "First small N stem must stay intact"
+        )
+        self.assertTrue(
+            ink("N_N.sc", (440, 260)), "Second small N stem must stay intact"
+        )
         self.assertFalse(
             ink("B_A", (411, 150)), "BA needs its small background opening"
         )
         self.assertTrue(ink("E_Y", (443, 667)), "EY must meet at the top bar")
+        self.assertTrue(
+            ink("E_Y", (460, 640)), "EY must not have a notch under its join"
+        )
+        self.assertTrue(
+            ink("E_Y.sc", (340, 465)), "Small-cap EY must also have a full-depth join"
+        )
 
-    def test_zero_and_flourishes(self):
+    def test_zero_and_spiral_s(self):
         self.assertNotEqual(self.font["hmtx"]["zero"][0], self.font["hmtx"]["O"][0])
         self.assertEqual(self.shape("0", zero=True)[0][0], "zero.slash")
+        self.assertEqual([n for n, w in self.shape("SEA")], ["S", "E", "A"])
         self.assertEqual(
-            [n for n, w in self.shape("THE SEA", ss01=True)],
-            ["T_H.sea", "E.sea", "space", "S.sea", "E.sea", "A.sea"],
+            [n for n, w in self.shape("sea", smcp=True)], ["S.sc", "E.sc", "A.sc"]
         )
-        self.assertEqual(
-            [n for n, w in self.shape("the sea", ss01=True, smcp=True)],
-            ["T_H.sea.sc", "E.sea.sc", "space", "S.sea.sc", "E.sea.sc", "A.sea.sc"],
+        s = pathops.Path()
+        self.glyphs["S"].draw(s.getPen())
+        self.assertLess(
+            s.bounds[1], -200, "S must keep the reference’s descending spiral"
         )
+        self.assertFalse(s.contains((240, 117)), "The spiral’s counter must stay open")
+        self.assertTrue(
+            s.contains((260, -15)), "The inward spiral return must be present"
+        )
+
+    def test_h_curved_bridge_without_loop(self):
+        h = pathops.Path()
+        self.glyphs["H"].draw(h.getPen())
+        self.assertTrue(
+            h.contains((100, 285)), "H bridge must curve out of the lower left stem"
+        )
+        self.assertTrue(
+            h.contains((510, 440)), "H bridge must rise into the right stem"
+        )
+        self.assertFalse(h.contains((200, 70)), "H must not have a bottom-left loop")
+        self.assertEqual(h.bounds, (38, 0, 580, 700))
 
     def test_smallcap_weight_and_height(self):
         for name in ["H.sc", "I.sc", "E.sc"]:
