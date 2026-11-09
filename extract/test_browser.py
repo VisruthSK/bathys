@@ -23,6 +23,10 @@ with sync_playwright() as p:
         page.evaluate('[...document.fonts].find(f=>f.family==="Bathys").status')
         == "loaded"
     )
+    labels = page.locator(".pair small").all_text_contents()
+    assert len(labels) == 27
+    for removed in ["RO", "ON", "OL", "LO", "OE", "ORA", "CORO", "OOR"]:
+        assert not any(label.startswith(removed + " /") for label in labels)
     page.screenshot(
         path=str(ROOT / "extract/generated/browser-proof.png"), full_page=True
     )
@@ -63,7 +67,7 @@ with sync_playwright() as p:
     )
     assert not errors, errors
     page.set_viewport_size({"width": 1600, "height": 1640})
-    for name in ["detail-study", "reference-study", "ligatures"]:
+    for name in ["glyph-proof", "reference-study", "ligatures"]:
         page.set_content(
             f'<img style="width:1580px" src="http://127.0.0.1:8765/svg/Bathys-{name}.svg">'
         )

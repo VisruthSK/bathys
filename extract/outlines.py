@@ -112,11 +112,11 @@ def alphabet(t=66):
     cut = rect(374, 210, 500, 280)
     C = difference(ring, cut)
     put("C", C, 707)
-    D = path("M38,0 L240,0 C520,0 660,132 660,350 C660,568 520,700 240,700 L38,700 Z")
-    Di = path(
-        f"M{38 + t},{t} L240,{t} C{520 - t},{t} {660 - t},155 {660 - t},350 C{660 - t},545 {520 - t},{700 - t} 240,{700 - t} L{38 + t},{700 - t} Z"
+    # An open lower return repeats the R's open throat, without losing D's bowl.
+    D = path(
+        "M38,0 L38,700 L286,700 C510,700 660,560 660,350 C660,140 510,0 286,0 L166,0 L166,66 L286,66 C470,66 594,174 594,350 C594,526 470,634 286,634 L104,634 L104,0 Z"
     )
-    put("D", difference(D, Di), 700)
+    put("D", D, 700)
     E = union(
         stem, rect(38, 700 - t, 412, t), rect(38, 326, 354, t), rect(38, 0, 412, t)
     )
@@ -134,7 +134,7 @@ def alphabet(t=66):
     J = path(
         f"M380,700 L{380 + t},700 L{380 + t},185 C{380 + t},50 345,-12 230,-12 C95,-12 24,65 24,195 L{24 + t},195 C{24 + t},105 135,{t - 12} 230,{t - 12} C325,{t - 12} 380,100 380,185 Z"
     )
-    put("J", J, 480)
+    put("J", union(J, rect(220, 634, 226, 66)), 480)
     put("K", union(stem, bar(80, 296, 530, 678, t), bar(270, 464, 550, 20, t)), 590)
     put("L", union(stem, rect(38, 0, 350, t)), 417)
     put(
@@ -166,7 +166,9 @@ def alphabet(t=66):
         ),
         644,
     )
-    P = union(stem, hollow(700, 300, 505))
+    P = path(
+        "M38,0 L38,700 L250,700 C409,700 503,624 503,488 C503,353 415,276 244,276 L173,276 L173,342 L244,342 C362,342 432,388 432,488 C432,582 362,629 250,629 L109,629 L109,0 Z"
+    )
     put("P", P, 545)
     put("Q", union(ring, bar(468, 186, 730, -66, t)), 760)
     # Traced from the standalone R in RAE: the bowl returns into the leg,
@@ -188,7 +190,9 @@ def alphabet(t=66):
                 (20, 700),
                 (94, 700),
                 (324, 100),
-                (554, 700),
+                (529, 634),
+                (450, 634),
+                (450, 700),
                 (628, 700),
                 (360, 0),
                 (288, 0),
@@ -206,7 +210,9 @@ def alphabet(t=66):
                 (420, 700),
                 (488, 700),
                 (663, 112),
-                (817, 700),
+                (800, 634),
+                (710, 634),
+                (710, 700),
                 (888, 700),
                 (701, 0),
                 (626, 0),
@@ -289,7 +295,13 @@ add(".notdef", difference(rect(40, 0, 480, 700), rect(100, 60, 360, 580)), 560)
 # Numerals follow the same round bowls and unadorned terminals.
 add("zero", difference(ellipse(264, 350, 230, 362), ellipse(264, 350, 164, 298)), 528)
 add("zero.slash", union(GLYPHS["zero"][0], bar(142, 130, 386, 570, 42)), 528)
-add("one", union(rect(235, 0, 66, 700), bar(88, 546, 268, 670, 66)), 397)
+add(
+    "one",
+    poly(
+        [(70, 542), (247, 700), (303, 700), (303, 0), (237, 0), (237, 610), (112, 498)]
+    ),
+    397,
+)
 add(
     "two",
     path(
@@ -424,7 +436,7 @@ LIGS = {
     "COR": ([0, 355, 820], 1356),
     "CO": ([0, 355], 1080),
     "OR": ([0, 465], 1001),
-    "BA": ([0, 235], 871),
+    "BA": ([0, 180], 816),
     "RA": ([0, 235], 871),
     "NN": ([0, 543], 1187),
     "EY": ([0, 417], 987),
@@ -432,12 +444,7 @@ LIGS = {
 DLIGS = {
     "OO": ([0, 545], 1293),
     "OC": ([0, 545], 1252),
-    "RO": ([0, 440], 1188),
-    "ON": ([0, 465], 1095),
-    "OE": ([0, 465], 947),
-    "OL": ([0, 465], 882),
     "OG": ([0, 520], 1268),
-    "LO": ([0, 310], 1058),
     "LA": ([0, 325], 961),
     "AE": ([0, 469], 951),
     "AR": ([0, 469], 1005),
@@ -447,10 +454,7 @@ DLIGS = {
     "TT": ([0, 480], 1068),
     "HE": ([0, 476], 958),
     "NE": ([0, 502], 984),
-    "ORA": ([0, 465, 700], 1336),
     "COO": ([0, 355, 900], 1648),
-    "OOR": ([0, 545, 1010], 1546),
-    "CORO": ([0, 355, 820, 1260], 2008),
     "FY": ([0, 417], 987),
     "ET": ([0, 420], 1008),
     "FT": ([0, 420], 1008),
@@ -467,15 +471,19 @@ for seq, (positions, width) in (LIGS | DLIGS).items():
             transform(
                 GLYPHS[("N.plain" if seq == "NN" and i == 0 else c) + suffix][0],
                 1,
-                x * scale + (gap if i else 0),
+                (round(x * scale) if seq == "BA" else x * scale) + (gap if i else 0),
             )
             for i, (c, x) in enumerate(zip(seq, positions, strict=True))
         ]
-        outline = union(*parts)
         if seq == "BA":
-            # Preserve the narrow almond of background inside the lower bowl.
-            eye = path("M375,96 C405,116 429,155 432,194 Z")
-            outline = difference(outline, transform(eye, scale))
+            # Preserve every A coordinate: translate its contours verbatim.
+            # Consistent winding gives the same fill as a union, without
+            # re-fitting or rounding new intersections along A's diagonal.
+            outline = pathops.Path()
+            for part in parts:
+                outline.addPath(part)
+        else:
+            outline = union(*parts)
         if seq in {"EY", "FY"}:
             # Continue the full depth of E/F's top bar into the sloping Y.
             # A simple overlap only connects at the cap line and leaves a notch.

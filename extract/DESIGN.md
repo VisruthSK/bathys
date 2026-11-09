@@ -10,7 +10,7 @@ The artist-name lettering and the thin **THE SEA** subtitle are two different co
 | O | Nearly circular, with optical overshoot. CO offsets the bowls; OR places R’s stem inside O’s right side. |
 | R | The return of the bowl runs into the diagonal leg. It **does not cross back to the stem**. The standalone R in RAE is the clearest reference. |
 | A | Rising left diagonal, vertical right stem, low crossbar. The supplied Glyphr drawing is retained as the starting geometry. |
-| B / BA | Smaller upper bowl, larger lower bowl. A enters the lower bowl, leaving a narrow almond of background beside the diagonal. That opening is drawn explicitly, rather than trusting a union of two stock letters. |
+| B / BA | A is the unchanged 636-unit character, translated 180 units to the right of B’s origin. Both source contours are retained verbatim. The small background opening follows naturally from the placement; no cut, scaling or stroke alteration is applied to A. |
 | I / L | Simple vertical and foot; their close spacing contributes to BAILEY’s rhythm. |
 | E / EY | Square arms; E’s top bar continues at full depth into Y’s left diagonal. EY has a custom bridge so the underside has no notch. FY uses the same construction. |
 | Y | Narrow fork, straight stem, flat terminals. |
@@ -18,7 +18,7 @@ The artist-name lettering and the thin **THE SEA** subtitle are two different co
 | S | The subtitle’s outer and inner edges are hand-fitted in source-image coordinates in `reference/S.svg`, using the neighbouring E to set the cap height and baseline. The lower loop descends below that baseline, and its inward return and counter remain open. This is the default S. |
 | H | The subtitle’s crossbar curves out of the lower left stem and rises into the right stem. Bathys keeps the main 66-unit stroke and straight stems; the bottom-left loop is omitted. |
 
-`Bathys-reference-study.svg` places the original raster lettering beside the new outlines at the same cap height. `Bathys-detail-study.svg` enlarges S, N, EY and H individually, and overlays the finished S contours on the original. `Bathys-ligatures.svg` shows every interlock at two sizes, alongside its unligated counterpart. The full original covers remain under `reference/` for comparison.
+`Bathys-reference-study.svg` places the original raster lettering beside the new outlines at the same cap height. `Bathys-glyph-proof.svg` shows the alphabet, figures and word trials. `Bathys-ligatures.svg` shows every interlock at two sizes, alongside its unligated counterpart. The full original covers remain under `reference/` for comparison.
 
 The optional `uv run extract/trace_s.py` extracts the S silhouette into `generated/S-extracted.svg` for comparison. The final outline is finished by hand in `reference/S.svg`; the extraction script does not overwrite it. This avoids carrying the JPEG’s edge noise into the font. Two connections to the neighbouring E are separated along the S’s visible outer curvature.
 
@@ -41,8 +41,12 @@ The optional `uv run extract/trace_s.py` extracts the S silhouette into `generat
 
 ## Scope of the extensions
 
-G follows the circular construction with an inward shelf, rather than the first build’s dangling vertical. Zero is a narrower oval, with an optional slash. Nine has an upright upper bowl and a descending return, rather than a rotated six.
+G follows the circular construction with an inward shelf. D and P use open returns related to R’s open throat. V and W retain diagonal valleys with a leftward upper return on their final strokes, repeating N’s cap flourish. J adds the same cap return over its hooked bowl. Zero is a narrower oval, with an optional slash; nine has an upright upper bowl and descending return.
+
+The proportional lining one uses a single outline: its angled flag meets the upright at the 700-unit cap line. This replaces the overlapping diagonal bar that left the old top malformed. [Glyphs’ figure-set guidance](https://glyphsapp.com/learn/figure-sets) distinguishes these proportional lining figures from tabular and old-style sets.
 
 The extra interlocks use three recurring devices: overlapping circles, shared vertical stems and joined top bars. They are tested in words as well as pairs. FY, ET, FT, TE, AY and NY extend the top-bar relationships; LY connects its foot to Y’s stem. A heavily nested TA was rejected during proofing because the letter identities became ambiguous.
+
+RO, ON, OL, LO, OE, ORA, CORO and OOR are excluded from both sizes and both font formats.
 
 A weight axis needs separate drawing work around BA’s narrow aperture, the R throat and the small-cap counters. The delivered width axis keeps those details intact. Weight is not simulated by thickening the outlines indiscriminately.

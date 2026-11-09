@@ -2,7 +2,6 @@
 
 import base64
 import html
-import xml.etree.ElementTree as ET
 from io import BytesIO
 from pathlib import Path
 
@@ -94,13 +93,17 @@ def proofs(glyph_order):
     )
     body += label("DEFAULT LIGATURES / CO  OR  COR  BA  RA", 65, 1160)
     body += svg_text("CO OR COR BA RA", 65, 1260, 111, "#172d2b")
-    body += label("DISCRETIONARY / OO  OC  RO  LA", 65, 1340)
-    body += svg_text("OO OC RO LA", 65, 1440, 111, "#172d2b", {"dlig": True})
+    body += label("DISCRETIONARY / OO  OC  LA  FY", 65, 1340)
+    body += svg_text("OO OC LA FY", 65, 1440, 111, "#172d2b", {"dlig": True})
     body += svg_text("AVATAR  WAVE  TOY  NOON  MINIMUM", 65, 1530, 60, "#172d2b")
-    write_svg("Bathys-glyph-proof.svg", body, 1400, 1600)
+    body += label("D / P / J / V / W / 1 — OPEN BOWLS & CAP RETURNS", 65, 1640)
+    body += svg_text("DPJVW1", 65, 1810, 205, "#172d2b")
+    body += svg_text("DEEP / JUPITER", 65, 1980, 104, "#172d2b")
+    body += svg_text("WAVES / VIEW / 101", 65, 2130, 104, "#172d2b")
+    body = body.replace('height="1600"', 'height="2250"', 1)
+    write_svg("Bathys-glyph-proof.svg", body, 1400, 2250)
     interlock_proof()
     reference_proof()
-    detail_proof()
 
 
 def interlock_proof():
@@ -158,48 +161,6 @@ def reference_proof():
         1430,
     )
     write_svg("Bathys-reference-study.svg", body, 2350, 1480)
-
-
-def detail_proof():
-    source = base64.b64encode(
-        (ROOT / "extract/reference/sea.jpg").read_bytes()
-    ).decode()
-    body = '<rect width="1700" height="2400" fill="#102b2b"/>'
-    body += f'<defs><image id="cover" href="data:image/jpeg;base64,{source}" width="1360" height="1360"/></defs>'
-    body += label("BATHYS / SOURCE LEFT / DRAWING RIGHT / MATCHED CAP HEIGHTS", 65, 65)
-    rows = [
-        ("S / DESCENDING SPIRAL", "S", (194, 450, 47, 64), 497, 42, 6, 140),
-        ("N / UPPER HORIZONTAL RETURN", "N", (395, 69, 107, 133), 194, 120, 3.5, 690),
-        ("EY / CONTINUOUS TOP BAR", "EY", (279, 194, 160, 125), 316, 118, 3.5, 1280),
-        (
-            "H / RISING BRIDGE, FULL WEIGHT, NO LOOP",
-            "H",
-            (128, 452, 36, 55),
-            498,
-            43,
-            6,
-            1850,
-        ),
-    ]
-    for title, word, (cx, cy, cw, ch), baseline, cap, scale, y in rows:
-        body += label(title, 65, y)
-        body += f'<svg x="85" y="{y + 30}" width="{cw * scale}" height="{ch * scale}" viewBox="{cx} {cy} {cw} {ch}"><use href="#cover"/></svg>'
-        body += svg_text(
-            word,
-            900,
-            y + 30 + (baseline - cy) * scale,
-            cap * scale / 700 * 1000,
-            "#eee8d8",
-        )
-        if word == "S":
-            contour = (
-                ET.parse(ROOT / "extract/reference/S.svg")
-                .find("{http://www.w3.org/2000/svg}path")
-                .attrib["d"]
-            )
-            body += label("OUTLINE OVER ORIGINAL", 1300, y)
-            body += f'<svg x="1300" y="{y + 30}" width="{cw * scale}" height="{ch * scale}" viewBox="{cx} {cy} {cw} {ch}"><use href="#cover"/><path d="{contour}" fill="none" stroke="#42dfe8" stroke-width=".12"/></svg>'
-    write_svg("Bathys-detail-study.svg", body, 1700, 2400)
 
 
 def render():

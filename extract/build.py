@@ -103,7 +103,7 @@ def build():
             "FullName": "Bathys Regular",
             "FamilyName": "Bathys",
             "Weight": "Regular",
-            "version": "1.200",
+            "version": "1.300",
         },
         cs,
         {"BlueValues": [-12, 0, 700, 712], "StdHW": 66, "StdVW": 66},
@@ -116,10 +116,10 @@ def build():
         {
             "familyName": "Bathys",
             "styleName": "Regular",
-            "uniqueFontIdentifier": "Bathys-Regular-1.200",
+            "uniqueFontIdentifier": "Bathys-Regular-1.300",
             "fullName": "Bathys Regular",
             "psName": "Bathys-Regular",
-            "version": "Version 1.200",
+            "version": "Version 1.300",
             "description": "Circular display capitals, open-throated R, returning N, interlocks and a spiral S.",
         }
     )
@@ -238,7 +238,7 @@ def build():
     feature_text = "\n".join(fea)
     (GENERATED / "Bathys.fea").write_text(feature_text)
     addOpenTypeFeaturesFromString(fb.font, feature_text)
-    fb.font["head"].fontRevision = 1.2
+    fb.font["head"].fontRevision = 1.3
     fb.font["head"].created = fb.font["head"].modified = (
         int(datetime(2026, 11, 9, tzinfo=UTC).timestamp()) + 2082844800
     )

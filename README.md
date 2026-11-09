@@ -4,14 +4,14 @@ Circular display capitals drawn from Corinne Bailey Rae’s **The Sea** and **Th
 
 **[Open the interactive proof](proof.html)** · [Static OTF](fonts/Bathys-Regular.otf) · [Variable OTF](fonts/Bathys-Variable.otf)
 
-The proof includes a width slider, small caps and ligature switches. For close inspection, open the [S/N/EY/H details and S overlay](svg/Bathys-detail-study.svg), [cover comparison](svg/Bathys-reference-study.svg), [complete ligature sheet](svg/Bathys-ligatures.svg), or [rendered font proof](svg/Bathys-rendered-proof.png). All SVG lettering is outlined.
+The proof includes a width slider, small caps and ligature switches. For close inspection, open the [glyph and word proof](svg/Bathys-glyph-proof.svg), [cover comparison](svg/Bathys-reference-study.svg), [complete ligature sheet](svg/Bathys-ligatures.svg), or [rendered font proof](svg/Bathys-rendered-proof.png). All SVG lettering is outlined.
 
 ## OpenType features
 
 | Feature | What it does |
 | --- | --- |
 | `liga` | CO, OR, COR, BA, RA, NN, EY |
-| `dlig` | 28 additional round overlaps, shared stems, joined top bars and longer interlocks |
+| `dlig` | 20 additional round overlaps, shared stems, joined top bars and longer interlocks |
 | `smcp`, `c2sc` | Optical small caps, including every ligature |
 | `zero` | Slashed zero; ordinary zero is already narrower than O |
 | `kern` | Pair spacing inherited by the outside letters of each ligature |

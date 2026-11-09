@@ -51,6 +51,49 @@ class FontProof(unittest.TestCase):
             )
             self.assertNotEqual([n for n, w in self.shape(seq)], ["_".join(seq)])
 
+    def test_removed_ligatures(self):
+        for sequence in ["RO", "ON", "OL", "LO", "OE", "ORA", "CORO", "OOR"]:
+            for suffix in ["", ".sc"]:
+                self.assertNotIn("_".join(sequence) + suffix, self.order)
+            self.assertNotEqual(
+                [n for n, w in self.shape(sequence, dlig=True)], ["_".join(sequence)]
+            )
+
+    def test_ba_uses_translated_unscaled_a(self):
+        self.assertEqual(self.font["hmtx"]["A"], (636, 24))
+        for suffix, offset in [("", 180), (".sc", 133)]:
+            a = pathops.Path()
+            b = pathops.Path()
+            actual = pathops.Path()
+            self.glyphs["A" + suffix].draw(a.getPen())
+            self.glyphs["B" + suffix].draw(b.getPen())
+            self.glyphs["B_A" + suffix].draw(actual.getPen())
+            moved = a.transform(1, 0, 0, 1, offset, 0)
+            expected = pathops.op(b, moved, pathops.PathOp.UNION)
+            self.assertLess(
+                abs(pathops.op(expected, actual, pathops.PathOp.XOR).area), 0.01
+            )
+            self.assertEqual(actual.bounds[2] - a.bounds[2], offset)
+
+    def test_extension_details_and_one(self):
+        for name, point in [("D", (130, 30)), ("P", (130, 310))]:
+            p = pathops.Path()
+            self.glyphs[name].draw(p.getPen())
+            self.assertFalse(p.contains(point), f"{name} must have an open return")
+            self.assertTrue(p.contains((70, 350)), f"{name} stem must remain solid")
+        for name, point in [
+            ("V", (460, 670)),
+            ("W", (720, 670)),
+            ("J", (230, 670)),
+            ("one", (240, 650)),
+        ]:
+            p = pathops.Path()
+            self.glyphs[name].draw(p.getPen())
+            self.assertTrue(p.contains(point), name)
+        p = pathops.Path()
+        self.glyphs["one"].draw(p.getPen())
+        self.assertEqual(p.bounds[3], 700, "The flag and stem must share one cap line")
+
     def test_smallcaps(self):
         self.assertEqual(
             [n for n, w in self.shape("corinne", smcp=True)],
@@ -144,7 +187,7 @@ class FontProof(unittest.TestCase):
             ink("N_N.sc", (440, 260)), "Second small N stem must stay intact"
         )
         self.assertFalse(
-            ink("B_A", (411, 150)), "BA needs its small background opening"
+            ink("B_A", (398, 150)), "BA must keep the natural background opening"
         )
         self.assertTrue(ink("E_Y", (443, 667)), "EY must meet at the top bar")
         self.assertTrue(

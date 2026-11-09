@@ -68,7 +68,7 @@ def variable_font(static, output):
                 caret.Coordinate = round(caret.Coordinate * factor)
         for name_id, value in [
             (1, "Bathys Variable"),
-            (3, "BathysVariable-1.200"),
+            (3, "BathysVariable-1.300"),
             (4, "Bathys Variable"),
             (6, "BathysVariable-Regular"),
             (16, "Bathys Variable"),
