@@ -55,7 +55,7 @@ def write_svg(name, body, w, h):
 
 
 def joining_proof():
-    body = '<rect width="1600" height="1760" fill="#eee8d8"/>'
+    body = '<rect width="1600" height="2760" fill="#eee8d8"/>'
     body += label("BATHYS / COMPOSABLE JOINS / NO ATH GLYPH", 65, 65)
     for title, features, y in [
         ("UNCONNECTED", {"liga": False, "calt": False}, 300),
@@ -70,10 +70,36 @@ def joining_proof():
     )
     body += svg_text("ATH / ETH / ATU", 65, 1470, 64, "#102b2b")
     body += svg_text("ATH / ETH / ATU", 65, 1580, 40, "#102b2b")
-    body += label(
-        "ORIGINAL A, T AND H OUTLINES / EACH LETTER REMAINS SELECTABLE", 65, 1700
+    body += label("AUTOMATIC IN WORDS / ORDINARY DEFAULT FEATURES", 65, 1690)
+    body += svg_text("WEATHER / FEATHER / GATHER", 65, 1800, 100, "#102b2b")
+    body += svg_text("FEATURE / THEATRE / BATHYS", 65, 1930, 100, "#102b2b")
+    body += svg_text("RARE / LAYER / ARRAY / LAE", 65, 2050, 100, "#102b2b")
+    body += svg_text(
+        "WEATHER / FEATURE / THEATRE", 65, 2190, 92, "#102b2b", {"c2sc": True}
     )
-    write_svg("Bathys-joining-proof.svg", body, 1600, 1760)
+    body += label("FOOT AND CAP CONNECTIONS / NO COMPOUND EA OR HY GLYPHS", 65, 2300)
+    body += svg_text("EA / HY / THEATRE / BATHYS", 65, 2430, 115, "#102b2b")
+    body += svg_text("SEA / HYMN / RHYTHM / EAT", 65, 2560, 110, "#102b2b")
+    body += label("REUSABLE FORMS / EACH LETTER REMAINS SELECTABLE", 65, 2690)
+    write_svg("Bathys-joining-proof.svg", body, 1600, 2760)
+
+
+def numeral_proof():
+    body = '<rect width="1600" height="2100" fill="#eee8d8"/>'
+    body += label("BATHYS / ROUND ZERO / CIRCULAR SIX / UPRIGHT NINE", 65, 65)
+    body += svg_text("069", 65, 500, 530, "#102b2b")
+    body += label("ZERO AND LETTER O / DISTINCT PROPORTIONS", 65, 620)
+    body += svg_text("0 O / 60 90 / 69 96", 65, 800, 170, "#102b2b")
+    body += svg_text("0123456789", 65, 1030, 210, "#102b2b")
+    body += svg_text("1969 / 2006 / 6090", 65, 1220, 140, "#102b2b")
+    body += svg_text("069 / 690 / 906 / 096", 65, 1370, 90, "#102b2b")
+    body += svg_text("069 / 690 / 906 / 096", 65, 1480, 48, "#102b2b")
+    body += svg_text("0 / 60 / 90 / 2006", 65, 1610, 96, "#102b2b", {"zero": True})
+    body += label("SPACING CONTROLS / READ THE ALTERNATING NEIGHBOURS", 65, 1720)
+    for control, baseline in [("0", 1820), ("6", 1920), ("9", 2020)]:
+        row = "".join(control + digit for digit in "0123456789") + control
+        body += svg_text(row, 65, baseline, 88, "#102b2b")
+    write_svg("Bathys-numerals-proof.svg", body, 1600, 2100)
 
 
 def proofs(glyph_order):
@@ -94,7 +120,7 @@ def proofs(glyph_order):
         "and carry the sea into the stars", 85, 1405, 49, "#d5ac72", {"smcp": True}
     )
     write_svg("Bathys-poster.svg", body, 1400, 1800)
-    body = '<rect width="1400" height="1600" fill="#f4eedf"/>'
+    body = '<rect width="1400" height="2330" fill="#f4eedf"/>'
     body += label("BATHYS / COMPLETE CHARACTER & SPACING PROOF", 65, 55)
     for row, y in [
         ("ABCDEFG", 200),
@@ -109,23 +135,24 @@ def proofs(glyph_order):
     body += svg_text(
         "abcdefghijklmnopqrstuvwxyz", 65, 1070, 86, "#172d2b", {"smcp": True}
     )
-    body += label("DEFAULT LIGATURES / BA NN EY FY TH TE TR TU TW", 65, 1160)
+    body += label("DEFAULT LIGATURES / ALL 17", 65, 1160)
     body += svg_text("BA NN EY FY TH TE TR TU TW", 65, 1260, 82, "#172d2b")
-    body += label("DISCRETIONARY / CO OR COR RA OO OC", 65, 1340)
+    body += svg_text("LA AT ET FT AY RA AR AE", 65, 1340, 82, "#172d2b")
+    body += label("DISCRETIONARY / CIRCLE OVERLAPS", 65, 1420)
     body += svg_text(
-        "CO OR COR RA OO OC", 65, 1440, 96, "#172d2b", {"dlig": True, "calt": False}
+        "CO OR COR OO OC", 65, 1520, 96, "#172d2b", {"dlig": True, "calt": False}
     )
-    body += svg_text("AVATAR  WAVE  TOY  NOON  MINIMUM", 65, 1530, 60, "#172d2b")
-    body += label("D / P / J / V / W / 1 — OPEN BOWLS & CAP RETURNS", 65, 1640)
-    body += svg_text("DPJVW1", 65, 1810, 205, "#172d2b")
-    body += svg_text("DEEP / JUPITER", 65, 1980, 104, "#172d2b")
-    body += svg_text("WAVES / VIEW / 101", 65, 2130, 104, "#172d2b")
-    body = body.replace('height="1600"', 'height="2250"', 1)
-    write_svg("Bathys-glyph-proof.svg", body, 1400, 2250)
+    body += svg_text("AVATAR  WAVE  TOY  NOON  MINIMUM", 65, 1610, 60, "#172d2b")
+    body += label("D / P / J / V / W / 1 — OPEN BOWLS & CAP RETURNS", 65, 1720)
+    body += svg_text("DPJVW1", 65, 1890, 205, "#172d2b")
+    body += svg_text("DEEP / JUPITER", 65, 2060, 104, "#172d2b")
+    body += svg_text("WAVES / VIEW / 101", 65, 2210, 104, "#172d2b")
+    write_svg("Bathys-glyph-proof.svg", body, 1400, 2330)
     interlock_proof()
     reference_proof()
     spacing_proof()
     joining_proof()
+    numeral_proof()
 
 
 def spacing_proof():

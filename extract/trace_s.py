@@ -1,7 +1,3 @@
-# /// script
-# requires-python = ">=3.13"
-# dependencies = ["pillow==13.0.0", "potracer==0.0.4", "fonttools==4.68.0"]
-# ///
 """Extract the subtitle S silhouette for comparison with the finished S.svg."""
 
 from pathlib import Path

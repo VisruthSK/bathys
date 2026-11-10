@@ -1,7 +1,3 @@
-# /// script
-# requires-python = ">=3.13"
-# dependencies = ["fonttools==4.68.0", "uharfbuzz==0.57.0", "skia-pathops==0.9.2"]
-# ///
 """Inspect the distributed font's contours and all capital-pair ink gaps."""
 
 import json
@@ -59,7 +55,7 @@ def audit():
             buffer = hb.Buffer()
             buffer.add_str(left + right)
             buffer.guess_segment_properties()
-            hb.shape(shaper, buffer, {"liga": False, "dlig": False})
+            hb.shape(shaper, buffer, {"liga": False, "calt": False, "dlig": False})
             advance = buffer.glyph_positions[0].x_advance
             gaps = [
                 advance + rows[right][y][0] - rows[left][y][1]
@@ -73,7 +69,11 @@ def audit():
                 shaped = hb.Buffer()
                 shaped.add_str(left + right)
                 shaped.guess_segment_properties()
-                hb.shape(shaper, shaped, {"liga": False, "dlig": False, "c2sc": small})
+                hb.shape(
+                    shaper,
+                    shaped,
+                    {"liga": False, "calt": False, "dlig": False, "c2sc": small},
+                )
                 names = [order[info.codepoint] for info in shaped.glyph_infos]
                 placed = outlines[names[1]].transform(
                     1, 0, 0, 1, shaped.glyph_positions[0].x_advance, 0

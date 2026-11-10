@@ -1,5 +1,6 @@
 """Structural and real-shaping checks against the distributed binaries."""
 
+import math
 import unittest
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from fontTools.pens.boundsPen import BoundsPen
 from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
-from outlines import DLIGS, JOIN_FORMS, LIGS
+from outlines import DLIGS, JOIN_FORMS, JOIN_PAIRS, LIGS
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -255,10 +256,13 @@ class FontProof(unittest.TestCase):
         )
 
     def test_all_valid_joining_chains(self):
-        runs = set(LIGS)
+        runs = set(JOIN_PAIRS)
         for _ in range(3):
             runs = {
-                run + right for run in runs for left, right in LIGS if run[-1] == left
+                run + right
+                for run in runs
+                for left, right in JOIN_PAIRS
+                if run[-1] == left
             }
             for run in runs:
                 expected = [
@@ -271,6 +275,97 @@ class FontProof(unittest.TestCase):
                     [n + ".sc" for n in expected],
                     run,
                 )
+
+    def test_contextual_joins_in_words_and_at_boundaries(self):
+        for word, middle in [
+            ("WEATHER", ["A.join_T", "T.join_H", "H.chain"]),
+            ("FEATHER", ["A.join_T", "T.join_H", "H.chain"]),
+            ("GATHER", ["A.join_T", "T.join_H", "H.chain"]),
+            ("FEATURE", ["A.join_T", "T.join_U", "U.chain"]),
+            ("THEATRE", ["A.join_T", "T.join_R", "R.chain"]),
+        ]:
+            names = [n for n, _ in self.shape(word)]
+            start = word.index("A")
+            self.assertEqual(names[names.index(middle[0]) :][:3], middle, word)
+            self.assertEqual(self.shape(word.lower()), self.shape(word))
+            small = [n for n, _ in self.shape(word.lower(), smcp=True)]
+            self.assertIn(middle[0] + ".sc", small)
+            # A separator must end a chain, including punctuation and NBSP.
+            for separator in [" ", "\u00a0", "-", "/", "."]:
+                broken = word[: start + 2] + separator + word[start + 2 :]
+                self.assertNotIn(middle[1], [n for n, _ in self.shape(broken)])
+
+    def test_zero_has_even_curved_strokes(self):
+        outline = pathops.Path()
+        self.glyphs["zero"].draw(outline.getPen())
+        self.assertEqual(self.font["hmtx"]["zero"][0], 610)
+        self.assertEqual(outline.bounds, (34, -12, 576, 712))
+        # Measure across the stroke, perpendicular to the centreline rather
+        # than along horizontal scanlines through the sloping shoulders.
+        for angle in range(0, 360, 15):
+            theta = math.radians(angle)
+            cx = 305 + 238 * math.cos(theta)
+            cy = 350 + 329 * math.sin(theta)
+            nx, ny = 329 * math.cos(theta), 238 * math.sin(theta)
+            length = math.hypot(nx, ny)
+            samples = [
+                step / 4
+                for step in range(-160, 161)
+                if outline.contains(
+                    (cx + step / 4 * nx / length, cy + step / 4 * ny / length)
+                )
+            ]
+            self.assertAlmostEqual(max(samples) - min(samples), 66, delta=1.5)
+
+    def test_new_connections_are_composable_individual_letters(self):
+        for text, expected in [
+            ("HY", ["H.join_Y", "Y.chain"]),
+            ("EA", ["E.join_A", "A.chain"]),
+            ("EATHY", ["E.join_A", "A.join_T", "T.join_H", "H.join_Y", "Y.chain"]),
+            ("THEATRE", ["T_H", "E.join_A", "A.join_T", "T.join_R", "R.chain", "E"]),
+        ]:
+            self.assertEqual([n for n, _ in self.shape(text)], expected)
+            self.assertEqual(
+                [n for n, _ in self.shape(text.lower(), smcp=True)],
+                [n + ".sc" for n in expected],
+            )
+        for pair in ["HY", "EA"]:
+            self.assertNotIn("_".join(pair), self.order)
+            self.assertEqual([n for n, _ in self.shape(pair, calt=False)], list(pair))
+            for separator in [" ", "\u00a0", "-", "/", "."]:
+                names = [n for n, _ in self.shape(separator.join(pair))]
+                self.assertFalse(any(".join_" in name for name in names))
+        for text in ["HY", "EA"]:
+            for features in [{}, {"c2sc": True}]:
+                shaped = self.shape(text, **features)
+                a = pathops.Path()
+                b = pathops.Path()
+                self.glyphs[shaped[0][0]].draw(a.getPen())
+                self.glyphs[shaped[1][0]].draw(b.getPen())
+                b = b.transform(1, 0, 0, 1, shaped[0][1], 0)
+                self.assertGreater(
+                    abs(pathops.op(a, b, pathops.PathOp.INTERSECTION).area), 1
+                )
+
+    def test_six_circle_and_upright_nine(self):
+        six = pathops.Path()
+        nine = pathops.Path()
+        self.glyphs["six"].draw(six.getPen())
+        self.glyphs["nine"].draw(nine.getPen())
+        # The lower 6 counter stays circular, without the shoulder intruding.
+        for angle in range(0, 360, 15):
+            theta = math.radians(angle)
+            self.assertFalse(
+                six.contains((268 + 153 * math.cos(theta), 210 + 153 * math.sin(theta)))
+            )
+            self.assertTrue(
+                six.contains((268 + 160 * math.cos(theta), 210 + 160 * math.sin(theta)))
+            )
+        for y in [10, 100, 200, 300]:
+            self.assertTrue(nine.contains((427, y)))
+            self.assertTrue(nine.contains((487, y)))
+            self.assertFalse(nine.contains((494, y)))
+        self.assertFalse(nine.contains((268, 490)))
 
     def test_kerning(self):
         self.assertLess(
@@ -354,9 +449,12 @@ class FontProof(unittest.TestCase):
     def test_zero_and_spiral_s(self):
         self.assertNotEqual(self.font["hmtx"]["zero"][0], self.font["hmtx"]["O"][0])
         self.assertEqual(self.shape("0", zero=True)[0][0], "zero.slash")
-        self.assertEqual([n for n, w in self.shape("SEA")], ["S", "E", "A"])
         self.assertEqual(
-            [n for n, w in self.shape("sea", smcp=True)], ["S.sc", "E.sc", "A.sc"]
+            [n for n, w in self.shape("SEA")], ["S", "E.join_A", "A.chain"]
+        )
+        self.assertEqual(
+            [n for n, w in self.shape("sea", smcp=True)],
+            ["S.sc", "E.join_A.sc", "A.chain.sc"],
         )
         s = pathops.Path()
         self.glyphs["S"].draw(s.getPen())

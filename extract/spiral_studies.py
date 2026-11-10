@@ -1,7 +1,3 @@
-# /// script
-# requires-python = ">=3.13"
-# dependencies = ["fonttools==4.68.0", "uharfbuzz==0.57.0", "skia-pathops==0.9.2"]
-# ///
 """Generate the retained Undertow G/Q trial without changing the font."""
 
 import html

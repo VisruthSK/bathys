@@ -312,8 +312,14 @@ add("space", pathops.Path(), 260)
 add("nbspace", pathops.Path(), 260)
 add(".notdef", difference(rect(40, 0, 480, 700), rect(100, 60, 360, 580)), 560)
 # Numerals follow the same round bowls and unadorned terminals.
-add("zero", difference(ellipse(264, 350, 230, 362), ellipse(264, 350, 164, 298)), 528)
-add("zero.slash", union(GLYPHS["zero"][0], bar(142, 130, 386, 570, 42)), 528)
+# A slightly fuller oval, offset from a centreline so the shoulders do not
+# pinch or gain weight between the horizontal and vertical extrema.
+zero = ellipse(305, 350, 238, 329)
+zero.stroke(66, pathops.LineCap.BUTT_CAP, pathops.LineJoin.ROUND_JOIN, 2)
+zero.convertConicsToQuads(0.1)
+zero.simplify(fix_winding=True)
+add("zero", zero, 610)
+add("zero.slash", union(zero, bar(158, 130, 452, 570, 42)), 610)
 add(
     "one",
     poly(
@@ -364,13 +370,16 @@ add(
 )
 add(
     "six",
-    union(
-        difference(ellipse(300, 219, 260, 231), ellipse(300, 219, 192, 165)),
-        path(
-            "M40,219 C40,520 149,712 349,712 C422,712 477,693 523,663 L490,605 C451,631 406,646 349,646 C193,646 109,484 109,219 Z"
+    difference(
+        union(
+            ellipse(268, 210, 222, 222),
+            path(
+                "M46,210 C46,512 150,712 344,712 C412,712 465,694 508,666 L475,609 C438,633 398,646 344,646 C194,646 112,485 112,210 Z"
+            ),
         ),
+        ellipse(268, 210, 156, 156),
     ),
-    600,
+    554,
 )
 seven_base = poly(
     [(28, 700), (568, 700), (568, 644), (235, 0), (159, 0), (492, 634), (28, 634)]
@@ -387,11 +396,11 @@ add(
     ),
     600,
 )
-nine_bowl = difference(ellipse(286, 480, 244, 232), ellipse(286, 480, 176, 166))
-nine_tail = path(
-    "M530,480 C530,170 424,-12 240,-12 C164,-12 112,10 67,42 L101,100 C139,73 182,54 240,54 C388,54 462,220 462,480 Z"
+nine = difference(
+    union(ellipse(268, 490, 222, 222), rect(424, 0, 66, 490)),
+    ellipse(268, 490, 156, 156),
 )
-add("nine", union(nine_bowl, nine_tail), 576)
+add("nine", nine, 536)
 for name, p, w in [
     ("period", ellipse(65, 32, 34, 34), 130),
     (
@@ -486,6 +495,21 @@ DLIGS = {
 # Clear cap-bar and foot joins are normal; dense monograms remain optional.
 for clear_join in ("LA", "AT", "ET", "FT", "AY", "RA", "AR", "AE"):
     LIGS[clear_join] = DLIGS.pop(clear_join)
+
+# Connections are independent of compound ligatures. Existing pairs retain
+# their positions; compatible cap terminals share a construction rule.
+JOIN_PAIRS = {pair: positions[1] for pair, (positions, _) in LIGS.items()}
+TOP_JOINS = {}
+for letter in "EFH":
+    end = GLYPHS[letter][0].bounds[2]
+    TOP_JOINS[letter + "Y"] = rect(end - 12, 634, 38, 66)
+    JOIN_PAIRS[letter + "Y"] = round(end - 33)
+for letter in "EL":
+    # A's diagonal meets the top of a 66-unit foot at x70; allow 15 units
+    # of overlap. Keep the established LA composition where it exists.
+    JOIN_PAIRS.setdefault(letter + "A", round(GLYPHS[letter][0].bounds[2] - 85))
+CONTEXTUAL_PAIRS = JOIN_PAIRS.keys() - LIGS.keys()
+
 SC_NN_GAP = 9
 for seq, (positions, width) in (LIGS | DLIGS).items():
     for suffix, scale in [("", 1), (".sc", 0.74)]:
@@ -507,31 +531,35 @@ for seq, (positions, width) in (LIGS | DLIGS).items():
                 outline.addPath(part)
         else:
             outline = union(*parts)
-        if seq in {"EY", "FY"}:
+        if seq in TOP_JOINS:
             # Continue the full depth of E/F's top bar into the sloping Y.
             # A simple overlap only connects at the cap line and leaves a notch.
-            bridge = rect(438, 634, 38, 66)
+            bridge = TOP_JOINS[seq]
             outline = union(outline, smallcap(bridge) if suffix else bridge)
         add(
             "_".join(seq) + suffix, outline, width * scale + gap + (10 if suffix else 0)
         )
 
 
-# One glyph per character in multi-join runs. Advances encode existing joins.
+# One glyph per character in connected runs. Advances encode each connection.
 JOIN_FORMS = {}
 for suffix in ["", ".sc"]:
-    for letter in sorted(set("".join(LIGS))):
+    for letter in sorted(set("".join(JOIN_PAIRS))):
         name = f"{letter}.chain{suffix}"
         add(name, *GLYPHS[letter + suffix])
         JOIN_FORMS[name] = {"base": letter, "target": None, "suffix": suffix}
-    for left, right in LIGS:
+    for left, right in JOIN_PAIRS:
         pair = left + right
         name = f"{left}.join_{right}{suffix}"
         source = "N.plain" if pair == "NN" else left
         outline = GLYPHS[source + suffix][0]
-        if pair in {"EY", "FY"}:
-            bridge = rect(438, 634, 38, 66)
+        if pair in TOP_JOINS:
+            bridge = TOP_JOINS[pair]
             outline = union(outline, smallcap(bridge) if suffix else bridge)
-        advance = GLYPHS["_".join(pair) + suffix][1] - GLYPHS[right + suffix][1]
+        advance = (
+            GLYPHS["_".join(pair) + suffix][1] - GLYPHS[right + suffix][1]
+            if pair in LIGS
+            else round(JOIN_PAIRS[pair] * (0.74 if suffix else 1))
+        )
         add(name, outline, advance)
         JOIN_FORMS[name] = {"base": left, "target": right, "suffix": suffix}

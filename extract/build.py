@@ -1,8 +1,4 @@
-# /// script
-# requires-python = ">=3.13"
-# dependencies = ["fonttools==4.68.0", "brotli==1.2.1", "uharfbuzz==0.57.0", "pillow==13.0.0", "skia-pathops==0.9.2"]
-# ///
-"""Build fonts and proofs: uv run extract/build.py [--check] [--glyphs]."""
+"""Build fonts and proofs: uv run --project extract extract/build.py [--check] [--glyphs]."""
 
 import argparse
 import json
@@ -17,7 +13,15 @@ from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
 
 from joining import chain_feature_code
-from outlines import DLIGS, GLYPHS, JOIN_FORMS, LIGS, SC_NN_GAP
+from outlines import (
+    CONTEXTUAL_PAIRS,
+    DLIGS,
+    GLYPHS,
+    JOIN_FORMS,
+    JOIN_PAIRS,
+    LIGS,
+    SC_NN_GAP,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "fonts"
@@ -104,7 +108,7 @@ def build():
             "FullName": "Bathys Regular",
             "FamilyName": "Bathys",
             "Weight": "Regular",
-            "version": "1.500",
+            "version": "1.502",
         },
         cs,
         {"BlueValues": [-12, 0, 700, 712], "StdHW": 66, "StdVW": 66},
@@ -117,10 +121,10 @@ def build():
         {
             "familyName": "Bathys",
             "styleName": "Regular",
-            "uniqueFontIdentifier": "Bathys-Regular-1.500",
+            "uniqueFontIdentifier": "Bathys-Regular-1.502",
             "fullName": "Bathys Regular",
             "psName": "Bathys-Regular",
-            "version": "Version 1.500",
+            "version": "Version 1.502",
             "description": "Circular display capitals, open-throated R, returning N, interlocks and a spiral S.",
         }
     )
@@ -147,7 +151,7 @@ def build():
         for c in letters:
             fea.append(f"sub {c} by {c.upper()}.sc;")
         fea.append(f"}} {tag};")
-    classes, chain_rules = chain_feature_code(LIGS)
+    classes, chain_rules = chain_feature_code(JOIN_PAIRS, CONTEXTUAL_PAIRS)
     fea.extend(classes)
     # Normalize capitals aliases only after the small-cap substitutions.
     fea.append("feature calt {")
@@ -264,6 +268,14 @@ def build():
         "LE": -40,
         "EY": -65,
     }
+    # Tighten upright terminals against stems and A's diagonal to a 44-unit
+    # bounding gap. Existing optical exceptions win; forms inherit the policy.
+    for left in "AHIMN":
+        for right in "ABDEFHIKLMNPRU":
+            gap = (
+                GLYPHS[left][1] - GLYPHS[left][0].bounds[2] + GLYPHS[right][0].bounds[0]
+            )
+            kerns.setdefault(left + right, round(44 - gap))
     fea.append("feature kern {")
     # Every ligature inherits the spacing of its outside letters.
     edges = {c: (c, c) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
@@ -315,7 +327,7 @@ def build():
     feature_text = "\n".join(fea)
     (GENERATED / "Bathys.fea").write_text(feature_text)
     addOpenTypeFeaturesFromString(fb.font, feature_text)
-    fb.font["head"].fontRevision = 1.5
+    fb.font["head"].fontRevision = 1.502
     fb.font["head"].created = fb.font["head"].modified = (
         int(datetime(2026, 11, 9, tzinfo=UTC).timestamp()) + 2082844800
     )

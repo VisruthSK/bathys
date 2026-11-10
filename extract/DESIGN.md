@@ -20,7 +20,7 @@ The artist-name lettering and the thin **THE SEA** subtitle are two different co
 
 `Bathys-reference-study.svg` places the original raster lettering beside the new outlines at the same cap height. `Bathys-glyph-proof.svg` shows the alphabet, figures and word trials. `Bathys-ligatures.svg` shows every interlock at two sizes, alongside its unligated counterpart. The full original covers remain under `reference/` for comparison.
 
-The optional `uv run extract/trace_s.py` extracts the S silhouette into `generated/S-extracted.svg` for comparison. The final outline is finished by hand in `reference/S.svg`; the extraction script does not overwrite it. This avoids carrying the JPEG’s edge noise into the font. Two connections to the neighbouring E are separated along the S’s visible outer curvature.
+The optional `uv run --project extract --group trace extract/trace_s.py` extracts the S silhouette into `generated/S-extracted.svg` for comparison. The final outline is finished by hand in `reference/S.svg`; the extraction script does not overwrite it. This avoids carrying the JPEG’s edge noise into the font. Two connections to the neighbouring E are separated along the S’s visible outer curvature.
 
 ## Drawing and spacing
 
@@ -37,11 +37,11 @@ The optional `uv run extract/trace_s.py` extracts the S silhouette into `generat
 - [Microsoft: GDEF](https://learn.microsoft.com/en-us/typography/opentype/spec/gdef) defines carets inside ligatures. Bathys provides ordered internal caret positions for every interlock, in both sizes.
 - [Microsoft: Width axis](https://learn.microsoft.com/en-us/typography/opentype/spec/dvaraxistag_wdth) defines 100 as the normal-width value. Bathys uses a restrained 85–115 range, transforming matching cubic topology, spacing, kern values and carets together.
 - [FontTools: varLib](https://fonttools.readthedocs.io/en/latest/varLib/index.html) compiles the CFF2 variable font. Tests compare the default’s filled geometry with the static font and exercise both endpoints and intermediate positions. Width is deliberately mechanical; these are not separately optically redrawn condensed/expanded masters.
-- [uv: Running scripts](https://docs.astral.sh/uv/guides/scripts/) documents inline dependency metadata. `build.py` owns the reproducible build; importing the outline source never writes files.
+- [uv: Project layout](https://docs.astral.sh/uv/concepts/projects/layout/) describes the shared project metadata and cross-platform lockfile. All build dependencies and Ruff settings live in `extract/pyproject.toml`; browser/lint tools use the dev group, and silhouette extraction uses the optional trace group. `build.py` owns the reproducible build; importing the outline source never writes files.
 
 ## Scope of the extensions
 
-G has the approved downward hook; the bar reaches the outer bowl and is clipped to the same ellipse to remove the step at the connection. Q uses the approved flowing tail. D and P use open returns related to R’s open throat. V and W retain diagonal valleys with a leftward upper return on their final strokes, repeating N’s cap flourish. J adds the same cap return over its hooked bowl. Zero is a narrower oval, with an optional slash; nine has an upright upper bowl and descending return.
+G has the approved downward hook; the bar reaches the outer bowl and is clipped to the same ellipse to remove the step at the connection. Q uses the approved flowing tail. D and P use open returns related to R’s open throat. V and W retain diagonal valleys with a leftward upper return on their final strokes, repeating N’s cap flourish. J adds the same cap return over its hooked bowl. Zero is a narrower oval, with an optional slash; six has a smaller circular lower bowl and nine has a circular upper bowl with a straight upright stem.
 
 The proportional lining one uses a single outline: its angled flag meets the upright at the 700-unit cap line. This replaces the overlapping diagonal bar that left the old top malformed. [Glyphs’ figure-set guidance](https://glyphsapp.com/learn/figure-sets) distinguishes these proportional lining figures from tabular and old-style sets.
 
@@ -66,3 +66,19 @@ Longer runs use contextual alternates, retaining one glyph per character. A mark
 A/T/H keep their original ink. EY/FY retain their purpose-built cap bridge, and NN retains the plain-first/returning-last construction. Outgoing advances already encode a join, so ordinary pair kerning is suppressed inside a connected run; kerning is inherited normally at its outside edges. Negative right sidebearings on outgoing forms are intentional. Individual letters remain selectable.
 
 Tests cover every valid connected run of three, four and five letters in capitals and small caps, plus explicit ATH positions of 0, 515 and 979. `calt=0` retains the legacy pair-only path. The poster and cover comparison use that mode for the reference lettering.
+
+[Microsoft's contextual-alternate specification](https://learn.microsoft.com/en-us/typography/opentype/spec/features_ae#tag-calt) defines context-dependent forms for better joins and recommends enabling them by default. [Glyphs' positional-alternate guidance](https://glyphsapp.com/learn/features-part-4-positional-alternates) explains why Latin joining should use `calt` rather than Arabic positional features. Bathys follows that approach. The expanded proof includes WEATHER, FEATHER, GATHER, FEATURE, THEATRE, RARE, LAYER and ARRAY. Tests also break joining contexts with spaces, nonbreaking spaces, hyphens, slashes and periods.
+
+## Zero and stroke review
+
+Zero's body is 542 units wide against O's 700, with its height and 34-unit sidebearings retained. Its fuller shoulders make the cap and baseline turns less pinched. Its outline is a 66-unit offset of a smooth oval centreline, avoiding the uneven shoulder thickness of subtracting two ellipses. The compiled contour is measured normal to that centreline at 24 positions, with a 1.5-unit tolerance for coordinate rounding and sampling. The slash follows the revised centre. O retains its much wider circular construction.
+
+[Glyphs' harmonization guidance](https://glyphsapp.com/learn/harmonization) relates opposing curves and their handles to the stroke direction; [Drawing good paths](https://glyphsapp.com/learn/drawing-good-paths#harmony) explains the uneven weight that mismatched inner and outer curves can introduce. The straight-stem system remains 66 units. The reference-derived A and the 71-unit P/R stems retain their existing proportions; G's 62-unit hook and the short 58-unit seven crossbar are deliberate lighter accents. These differences are preserved rather than redrawing the accepted characters to one numerical thickness.
+
+EA and HY extend the joining graph independently of the ligature catalogue. E/F/H use the same cap-to-Y construction; E/L supply foot-to-A connections, retaining the established LA placement. No EA, HY or word-specific glyph is added. THEATRE composes E–A–T–R as individual forms; BATHYS composes B–A–T–H–Y. The A outline remains unchanged.
+
+A common 44-unit bounding gap tightens upright terminals against neighbouring stems and A. Existing optical kerning exceptions take precedence. The outside-edge inheritance applies this spacing to both compound ligatures and contextual forms, preventing detached-looking gaps at the ends of connected runs. Exact collision audits still cover all 676 capital and 676 small-cap pairs with joining disabled.
+
+[Briem's numeral-spacing method](https://help.fontlab.com/fontlab/8/tutorials/briem/5-0-spacing/briem-5-05-numerals/) tests figures between repeated controls. The numeral proof adds alternating zero, six and nine rows for that review. [Microsoft's figure standards](https://learn.microsoft.com/en-us/typography/develop/character-design-standards/figures) also use zero as the spacing control and distinguish flat alignments from round overshoots. Bathys retains proportional lining figures, equal zero sidebearings and the shared −12/712 overshoot band; nine's flat stem ends at the baseline.
+
+[Briem's joined-letter guidance](https://help.fontlab.com/fontlab/8/tutorials/briem/5-0-spacing/briem-5-07-joined-letters/) distinguishes joins that meet another joining stroke from joins that overlap a stem. Bathys uses controlled overlap at its cap and foot contacts, with outgoing advances carrying that placement. Kerning handles the unconnected neighbours outside a run.
