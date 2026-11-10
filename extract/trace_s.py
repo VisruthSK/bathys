@@ -1,4 +1,4 @@
-"""Extract the subtitle S silhouette for comparison with the finished S.svg."""
+"""Extract the subtitle S silhouette for comparison with the finished S.path."""
 
 from pathlib import Path
 
@@ -76,9 +76,8 @@ for contour in contours:
                 point(segment.c1), point(segment.c2), point(segment.end_point)
             )
     scaled.closePath()
-(GENERATED / "S-extracted.svg").write_text(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="194 452 46 62">'
-    f'<path d="{pen.getCommands()}"/></svg>\n',
+(GENERATED / "S-extracted.path").write_text(
+    pen.getCommands() + "\n",
     encoding="utf-8",
 )
-print("Extracted generated/S-extracted.svg; the finished source is reference/S.svg.")
+print("Extracted generated/S-extracted.path; the finished source is reference/S.path.")

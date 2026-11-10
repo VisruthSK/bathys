@@ -1,4 +1,4 @@
-"""Build fonts and proofs: uv run --project extract extract/build.py [--check] [--glyphs]."""
+"""Build fonts and the HTML catalogue: uv run --project extract extract/build.py --check."""
 
 import argparse
 import json
@@ -8,13 +8,11 @@ from pathlib import Path
 
 from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 from fontTools.fontBuilder import FontBuilder
-from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
 
 from joining import chain_feature_code
 from outlines import (
-    CONTEXTUAL_PAIRS,
     DLIGS,
     GLYPHS,
     JOIN_FORMS,
@@ -25,7 +23,6 @@ from outlines import (
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "fonts"
-SVG = ROOT / "svg"
 GENERATED = ROOT / "extract/generated"
 
 
@@ -108,7 +105,7 @@ def build():
             "FullName": "Bathys Regular",
             "FamilyName": "Bathys",
             "Weight": "Regular",
-            "version": "1.502",
+            "version": "1.600",
         },
         cs,
         {"BlueValues": [-12, 0, 700, 712], "StdHW": 66, "StdVW": 66},
@@ -121,10 +118,10 @@ def build():
         {
             "familyName": "Bathys",
             "styleName": "Regular",
-            "uniqueFontIdentifier": "Bathys-Regular-1.502",
+            "uniqueFontIdentifier": "Bathys-Regular-1.600",
             "fullName": "Bathys Regular",
             "psName": "Bathys-Regular",
-            "version": "Version 1.502",
+            "version": "Version 1.600",
             "description": "Circular display capitals, open-throated R, returning N, interlocks and a spiral S.",
         }
     )
@@ -151,7 +148,7 @@ def build():
         for c in letters:
             fea.append(f"sub {c} by {c.upper()}.sc;")
         fea.append(f"}} {tag};")
-    classes, chain_rules = chain_feature_code(JOIN_PAIRS, CONTEXTUAL_PAIRS)
+    classes, chain_rules = chain_feature_code(JOIN_PAIRS)
     fea.extend(classes)
     # Normalize capitals aliases only after the small-cap substitutions.
     fea.append("feature calt {")
@@ -327,7 +324,7 @@ def build():
     feature_text = "\n".join(fea)
     (GENERATED / "Bathys.fea").write_text(feature_text)
     addOpenTypeFeaturesFromString(fb.font, feature_text)
-    fb.font["head"].fontRevision = 1.502
+    fb.font["head"].fontRevision = 1.600
     fb.font["head"].created = fb.font["head"].modified = (
         int(datetime(2026, 11, 9, tzinfo=UTC).timestamp()) + 2082844800
     )
@@ -345,27 +342,13 @@ def build():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
-    parser.add_argument("--glyphs", action="store_true")
     args = parser.parse_args()
-    for directory in [OUT, SVG, GENERATED]:
+    for directory in [OUT, GENERATED]:
         directory.mkdir(parents=True, exist_ok=True)
-    order = build()
-    from specimen import proofs, render
+    build()
+    from specimen import write_proof_data
 
-    proofs(order)
-    render()
-    if args.glyphs:
-        target = GENERATED / "glyphs"
-        target.mkdir(exist_ok=True)
-        for name, (outline, width) in GLYPHS.items():
-            if not len(outline):
-                continue
-            pen = SVGPathPen(None)
-            outline.draw(pen)
-            filename = "lower-" + name if len(name) == 1 and name.islower() else name
-            (target / f"{filename}.svg").write_text(
-                f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -820 {max(width, outline.bounds[2]) + 40} 1100"><path transform="scale(1,-1)" d="{pen.getCommands()}"/></svg>'
-            )
+    write_proof_data()
     (GENERATED / "glyph-data.json").write_text(
         json.dumps(
             {
@@ -379,7 +362,7 @@ def main():
             indent=2,
         )
     )
-    print(f"Built {len(GLYPHS)} glyphs and visual proofs.")
+    print(f"Built {len(GLYPHS)} glyphs and the HTML proof catalogue.")
     if args.check:
         suite = unittest.defaultTestLoader.discover(
             str(Path(__file__).parent), pattern="test_font.py"

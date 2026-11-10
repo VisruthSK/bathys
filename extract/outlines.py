@@ -2,7 +2,6 @@
 
 import json
 import math
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pathops
@@ -59,14 +58,41 @@ def transform(p, scale=1, dx=0, dy=0):
     return q
 
 
+def pen_cut(outline, start, end, side):
+    """A 20-degree terminal cut, extended past curved edges to avoid slivers."""
+    x0, y0 = start
+    x1, y1 = end
+    slope = math.tan(math.radians(20))
+    if side in {"right", "left"}:
+        direction = 1 if side == "right" else -1
+        low, high = y0 - 8, y1 + 8
+        outside = x0 - direction * 8
+        points = [
+            (outside, low),
+            (x0 + direction * (low - y0) * slope, low),
+            (x0 + direction * (high - y0) * slope, high),
+            (outside, high),
+        ]
+    else:
+        direction = 1 if side == "above" else -1
+        low, high = x0 - 8, x1 + 8
+        outside = y0 - direction * 8
+        points = [
+            (low, outside),
+            (low, y0 + direction * (low - x0) * slope),
+            (high, y0 + direction * (high - x0) * slope),
+            (high, outside),
+        ]
+    return difference(outline, poly(points))
+
+
 def add(name, p, width):
     GLYPHS[name] = (p, round(width))
 
 
 def spiral_s():
     # Fitted outer and inner cover edges, not a stroked centreline.
-    element = ET.parse(REFERENCE / "S.svg").find("{http://www.w3.org/2000/svg}path")
-    outline = path(element.attrib["d"])
+    outline = path((REFERENCE / "S.path").read_text(encoding="utf-8"))
     scale = 700 / 42
     outline = outline.transform(scale, 0, 0, -scale, 24 - 196 * scale, 497 * scale)
     # Fit the entire spiral in the capitals' overshoot band. Compensate its
@@ -286,6 +312,15 @@ def alphabet(t=66):
         ),
         597,
     )
+    for letter, start, end, side in [
+        ("P", (173, 276), (173, 342), "right"),
+        ("J", (24, 195), (90, 195), "below"),
+        ("D", (166, 0), (166, 66), "right"),
+        ("G", (419, 244), (481, 244), "above"),
+        ("Q", (741, -65), (741, 1), "left"),
+    ]:
+        outline, width = g[letter]
+        g[letter] = pen_cut(outline, start, end, side), width
     return g
 
 
@@ -374,12 +409,12 @@ add(
         union(
             ellipse(268, 210, 222, 222),
             path(
-                "M46,210 C46,512 150,712 344,712 C412,712 465,694 508,666 L475,609 C438,633 398,646 344,646 C194,646 112,485 112,210 Z"
+                "M46,210 L46,500 C46,626 128,712 250,712 C296,712 338,701 366,688 L342,622 C312,638 284,646 252,646 C166,646 112,588 112,500 L112,210 Z"
             ),
         ),
         ellipse(268, 210, 156, 156),
     ),
-    554,
+    536,
 )
 seven_base = poly(
     [(28, 700), (568, 700), (568, 644), (235, 0), (159, 0), (492, 634), (28, 634)]
@@ -470,6 +505,11 @@ LIGS = {
     "TR": ([0, 459], 995),
     "TU": ([0, 464], 1068),
     "TW": ([0, 477], 1385),
+    # T's cap absorbs the existing upper return of V/W at its full depth.
+    "VT": ([0, 430], 1018),
+    "WT": ([0, 690], 1278),
+    "EA": ([0, 365], 1001),
+    "HY": ([0, 547], 1117),
 }
 DLIGS = {
     "CO": ([0, 355], 1080),
@@ -496,19 +536,22 @@ DLIGS = {
 for clear_join in ("LA", "AT", "ET", "FT", "AY", "RA", "AR", "AE"):
     LIGS[clear_join] = DLIGS.pop(clear_join)
 
-# Connections are independent of compound ligatures. Existing pairs retain
-# their positions; compatible cap terminals share a construction rule.
+# Cap arms meet a diagonal entry using the same bridge as EY. A retains its
+# exact contours and shares its upright's cap with V/W without a bridge.
+for left in "EFH":
+    offset = round(GLYPHS[left][0].bounds[2] - 33)
+    for right in "VW":
+        LIGS[left + right] = ([0, offset], offset + GLYPHS[right][1])
+for right in "VW":
+    LIGS["A" + right] = ([0, 488], 488 + GLYPHS[right][1])
+
+# The ligature catalogue is the single source for every contextual connection.
 JOIN_PAIRS = {pair: positions[1] for pair, (positions, _) in LIGS.items()}
-TOP_JOINS = {}
-for letter in "EFH":
-    end = GLYPHS[letter][0].bounds[2]
-    TOP_JOINS[letter + "Y"] = rect(end - 12, 634, 38, 66)
-    JOIN_PAIRS[letter + "Y"] = round(end - 33)
-for letter in "EL":
-    # A's diagonal meets the top of a 66-unit foot at x70; allow 15 units
-    # of overlap. Keep the established LA composition where it exists.
-    JOIN_PAIRS.setdefault(letter + "A", round(GLYPHS[letter][0].bounds[2] - 85))
-CONTEXTUAL_PAIRS = JOIN_PAIRS.keys() - LIGS.keys()
+TOP_JOINS = {
+    pair: rect(GLYPHS[pair[0]][0].bounds[2] - 12, 634, 38, 66)
+    for pair in LIGS
+    if pair[0] in "EFH" and pair[1] in "VWY"
+}
 
 SC_NN_GAP = 9
 for seq, (positions, width) in (LIGS | DLIGS).items():
@@ -518,17 +561,20 @@ for seq, (positions, width) in (LIGS | DLIGS).items():
             transform(
                 GLYPHS[("N.plain" if seq == "NN" and i == 0 else c) + suffix][0],
                 1,
-                (round(x * scale) if seq == "BA" else x * scale) + (gap if i else 0),
+                (round(x * scale) if seq in {"BA", "VT", "WT"} else x * scale)
+                + (gap if i else 0),
             )
             for i, (c, x) in enumerate(zip(seq, positions, strict=True))
         ]
-        if seq == "BA":
-            # Preserve every A coordinate: translate its contours verbatim.
+        if seq in {"BA", "VT", "WT"}:
+            # Preserve the A or T coordinates: translate contours verbatim.
             # Consistent winding gives the same fill as a union, without
             # re-fitting or rounding new intersections along A's diagonal.
             outline = pathops.Path()
             for part in parts:
-                outline.addPath(part)
+                outline.addPath(
+                    part if seq == "BA" else pathops.simplify(part, fix_winding=True)
+                )
         else:
             outline = union(*parts)
         if seq in TOP_JOINS:
@@ -556,10 +602,6 @@ for suffix in ["", ".sc"]:
         if pair in TOP_JOINS:
             bridge = TOP_JOINS[pair]
             outline = union(outline, smallcap(bridge) if suffix else bridge)
-        advance = (
-            GLYPHS["_".join(pair) + suffix][1] - GLYPHS[right + suffix][1]
-            if pair in LIGS
-            else round(JOIN_PAIRS[pair] * (0.74 if suffix else 1))
-        )
+        advance = GLYPHS["_".join(pair) + suffix][1] - GLYPHS[right + suffix][1]
         add(name, outline, advance)
         JOIN_FORMS[name] = {"base": left, "target": right, "suffix": suffix}

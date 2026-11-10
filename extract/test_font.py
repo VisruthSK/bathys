@@ -319,10 +319,12 @@ class FontProof(unittest.TestCase):
 
     def test_new_connections_are_composable_individual_letters(self):
         for text, expected in [
-            ("HY", ["H.join_Y", "Y.chain"]),
-            ("EA", ["E.join_A", "A.chain"]),
+            ("HY", ["H_Y"]),
+            ("EA", ["E_A"]),
             ("EATHY", ["E.join_A", "A.join_T", "T.join_H", "H.join_Y", "Y.chain"]),
             ("THEATRE", ["T_H", "E.join_A", "A.join_T", "T.join_R", "R.chain", "E"]),
+            ("WTW", ["W.join_T", "T.join_W", "W.chain"]),
+            ("VTH", ["V.join_T", "T.join_H", "H.chain"]),
         ]:
             self.assertEqual([n for n, _ in self.shape(text)], expected)
             self.assertEqual(
@@ -330,19 +332,21 @@ class FontProof(unittest.TestCase):
                 [n + ".sc" for n in expected],
             )
         for pair in ["HY", "EA"]:
-            self.assertNotIn("_".join(pair), self.order)
-            self.assertEqual([n for n, _ in self.shape(pair, calt=False)], list(pair))
+            self.assertEqual(
+                [n for n, _ in self.shape(pair, calt=False, liga=False)], list(pair)
+            )
             for separator in [" ", "\u00a0", "-", "/", "."]:
                 names = [n for n, _ in self.shape(separator.join(pair))]
                 self.assertFalse(any(".join_" in name for name in names))
         for text in ["HY", "EA"]:
-            for features in [{}, {"c2sc": True}]:
-                shaped = self.shape(text, **features)
+            for suffix in ["", ".sc"]:
+                left = f"{text[0]}.join_{text[1]}{suffix}"
+                right = f"{text[1]}.chain{suffix}"
                 a = pathops.Path()
                 b = pathops.Path()
-                self.glyphs[shaped[0][0]].draw(a.getPen())
-                self.glyphs[shaped[1][0]].draw(b.getPen())
-                b = b.transform(1, 0, 0, 1, shaped[0][1], 0)
+                self.glyphs[left].draw(a.getPen())
+                self.glyphs[right].draw(b.getPen())
+                b = b.transform(1, 0, 0, 1, self.font["hmtx"][left][0], 0)
                 self.assertGreater(
                     abs(pathops.op(a, b, pathops.PathOp.INTERSECTION).area), 1
                 )
@@ -366,15 +370,59 @@ class FontProof(unittest.TestCase):
             self.assertTrue(nine.contains((487, y)))
             self.assertFalse(nine.contains((494, y)))
         self.assertFalse(nine.contains((268, 490)))
+        for y in [450, 480]:
+            self.assertTrue(six.contains((49, y)))
+            self.assertTrue(six.contains((109, y)))
+            self.assertFalse(six.contains((43, y)))
+        self.assertTrue(six.contains((268, 680)), "Six needs a curved upper shoulder")
+        self.assertFalse(six.contains((60, 690)), "The top must turn into the shoulder")
+
+    def test_adopted_twenty_degree_terminals(self):
+        for name, removed, kept in [
+            ("P", (178, 330), (205, 330)),
+            ("J", (85, 190), (60, 160)),
+            ("D", (175, 55), (200, 55)),
+            ("G", (475, 247), (430, 280)),
+            ("Q", (735, -5), (710, -32)),
+        ]:
+            outline = pathops.Path()
+            self.glyphs[name].draw(outline.getPen())
+            self.assertFalse(outline.contains(removed), name)
+            self.assertTrue(outline.contains(kept), name)
+
+    def test_vt_wt_share_the_return_with_t(self):
+        self.assertEqual(set(JOIN_PAIRS), set(LIGS))
+        for letter, offset in [("V", 430), ("W", 690)]:
+            for suffix, scale in [("", 1), (".sc", 0.74)]:
+                left = pathops.Path()
+                t = pathops.Path()
+                actual = pathops.Path()
+                self.glyphs[letter + suffix].draw(left.getPen())
+                self.glyphs["T" + suffix].draw(t.getPen())
+                self.glyphs[letter + "_T" + suffix].draw(actual.getPen())
+                t = t.transform(1, 0, 0, 1, round(offset * scale), 0)
+                expected = pathops.op(left, t, pathops.PathOp.UNION)
+                self.assertLess(
+                    abs(pathops.op(expected, actual, pathops.PathOp.XOR).area), 2
+                )
+                self.assertGreater(
+                    abs(pathops.op(left, t, pathops.PathOp.INTERSECTION).area),
+                    5000 * scale**2,
+                )
 
     def test_kerning(self):
         self.assertLess(
-            sum(w for n, w in self.shape("AV")),
-            sum(w for n, w in self.shape("AV", kern=False)),
+            sum(w for n, w in self.shape("AV", liga=False, calt=False)),
+            sum(w for n, w in self.shape("AV", liga=False, calt=False, kern=False)),
         )
         self.assertLess(
-            sum(w for n, w in self.shape("AV", c2sc=True)),
-            sum(w for n, w in self.shape("AV", c2sc=True, kern=False)),
+            sum(w for n, w in self.shape("AV", c2sc=True, liga=False, calt=False)),
+            sum(
+                w
+                for n, w in self.shape(
+                    "AV", c2sc=True, liga=False, calt=False, kern=False
+                )
+            ),
         )
 
     def test_coverage(self):
@@ -449,12 +497,10 @@ class FontProof(unittest.TestCase):
     def test_zero_and_spiral_s(self):
         self.assertNotEqual(self.font["hmtx"]["zero"][0], self.font["hmtx"]["O"][0])
         self.assertEqual(self.shape("0", zero=True)[0][0], "zero.slash")
-        self.assertEqual(
-            [n for n, w in self.shape("SEA")], ["S", "E.join_A", "A.chain"]
-        )
+        self.assertEqual([n for n, w in self.shape("SEA")], ["S", "E_A"])
         self.assertEqual(
             [n for n, w in self.shape("sea", smcp=True)],
-            ["S.sc", "E.join_A.sc", "A.chain.sc"],
+            ["S.sc", "E_A.sc"],
         )
         s = pathops.Path()
         self.glyphs["S"].draw(s.getPen())

@@ -1,7 +1,7 @@
 """Contextual joins for connected runs, without word-specific ligatures."""
 
 
-def chain_feature_code(pairs, contextual_pairs=()):
+def chain_feature_code(pairs):
     classes = []
     mark = []
     extend = []
@@ -28,9 +28,6 @@ def chain_feature_code(pairs, contextual_pairs=()):
             mark.append(
                 f"sub {left_class} {middle}{suffix}' {right_class} by {middle}.chain{suffix};"
             )
-        # These connections have no compound glyph, including in isolated pairs.
-        for left, right in sorted(contextual_pairs):
-            mark.append(f"sub {left}{suffix}' {right}{suffix} by {left}.chain{suffix};")
         for left, right in pairs:
             extend.append(
                 f"sub {left}{suffix}' {right}.chain{suffix} by {left}.chain{suffix};"
