@@ -34,7 +34,10 @@ class FontProof(unittest.TestCase):
 
     def test_reference_word(self):
         self.assertEqual(
-            [n for n, w in self.shape("CORINNE")], ["C_O_R", "I", "N_N", "E"]
+            [n for n, w in self.shape("CORINNE", dlig=True)], ["C_O_R", "I", "N_N", "E"]
+        )
+        self.assertEqual(
+            [n for n, w in self.shape("CORINNE")], ["C", "O", "R", "I", "N_N", "E"]
         )
         self.assertEqual([n for n, w in self.shape("BAILEY")], ["B_A", "I", "L", "E_Y"])
 
@@ -51,8 +54,75 @@ class FontProof(unittest.TestCase):
             )
             self.assertNotEqual([n for n, w in self.shape(seq)], ["_".join(seq)])
 
+    def test_tu_preserves_letter_identities(self):
+        outline = pathops.Path()
+        self.glyphs["T_U"].draw(outline.getPen())
+        for point in [(294, 100), (1000, 500), (550, 670)]:
+            self.assertTrue(outline.contains(point))
+        self.assertFalse(outline.contains((766, 350)), "U counter must remain open")
+
+    def test_th_has_no_cap_overhang(self):
+        self.assertEqual(self.font["hmtx"]["T_H"][0], 1082)
+        outline = pathops.Path()
+        self.glyphs["T_H"].draw(outline.getPen())
+        self.assertTrue(outline.contains((560, 670)))
+        self.assertFalse(outline.contains((575, 670)))
+        self.assertEqual(outline.bounds[2], 1044)
+
+    def test_spacing_pairs_do_not_collide(self):
+        for text in [
+            "TA",
+            "YA",
+            "FA",
+            "PA",
+            "VA",
+            "WA",
+            "OA",
+            "TS",
+            "YS",
+            "FS",
+            "PS",
+            "VS",
+            "WS",
+            "SA",
+        ]:
+            shaped = self.shape(text, liga=False, dlig=False)
+            left = pathops.Path()
+            right = pathops.Path()
+            self.glyphs[shaped[0][0]].draw(left.getPen())
+            self.glyphs[shaped[1][0]].draw(right.getPen())
+            right = right.transform(1, 0, 0, 1, shaped[0][1], 0)
+            self.assertLess(
+                abs(pathops.op(left, right, pathops.PathOp.INTERSECTION).area),
+                0.01,
+                text,
+            )
+
     def test_removed_ligatures(self):
-        for sequence in ["RO", "ON", "OL", "LO", "OE", "ORA", "CORO", "OOR"]:
+        for sequence in [
+            "RO",
+            "ON",
+            "OL",
+            "LO",
+            "OE",
+            "ORA",
+            "CORO",
+            "OOR",
+            "TI",
+            "TB",
+            "TD",
+            "TF",
+            "TK",
+            "TL",
+            "TM",
+            "TN",
+            "TP",
+            "TV",
+            "TX",
+            "TZ",
+            "TT",
+            "TY",
+        ]:
             for suffix in ["", ".sc"]:
                 self.assertNotIn("_".join(sequence) + suffix, self.order)
             self.assertNotEqual(
@@ -94,13 +164,36 @@ class FontProof(unittest.TestCase):
         self.glyphs["one"].draw(p.getPen())
         self.assertEqual(p.bounds[3], 700, "The flag and stem must share one cap line")
 
+    def test_main_t_and_seven_have_normal_bars(self):
+        original = pathops.Path()
+        from fontTools.svgLib.path import parse_path
+
+        parse_path(
+            "M28,700 L568,700 L568,644 L235,0 L159,0 L492,634 L28,634 Z",
+            original.getPen(),
+        )
+        actual = pathops.Path()
+        self.glyphs["seven"].draw(actual.getPen())
+        crossbar=pathops.Path()
+        parse_path('M230,321 L530,321 L530,379 L230,379 Z',crossbar.getPen())
+        expected=pathops.op(original,crossbar,pathops.PathOp.UNION)
+        self.assertLess(abs(pathops.op(expected,actual,pathops.PathOp.XOR).area),.01)
+        t = pathops.Path()
+        self.glyphs["T"].draw(t.getPen())
+        original_t = pathops.Path()
+        parse_path(
+            "M20,700 L568,700 L568,634 L327,634 L327,0 L261,0 L261,634 L20,634 Z",
+            original_t.getPen(),
+        )
+        self.assertLess(abs(pathops.op(original_t, t, pathops.PathOp.XOR).area), 0.01)
+
     def test_smallcaps(self):
         self.assertEqual(
-            [n for n, w in self.shape("corinne", smcp=True)],
+            [n for n, w in self.shape("corinne", smcp=True, dlig=True)],
             ["C_O_R.sc", "I.sc", "N_N.sc", "E.sc"],
         )
         self.assertEqual(
-            [n for n, w in self.shape("CORINNE", c2sc=True)],
+            [n for n, w in self.shape("CORINNE", c2sc=True, dlig=True)],
             ["C_O_R.sc", "I.sc", "N_N.sc", "E.sc"],
         )
         self.assertEqual(self.shape("corinne"), self.shape("CORINNE"))
@@ -146,7 +239,7 @@ class FontProof(unittest.TestCase):
                 self.glyphs[name].draw(pen)
                 if pen.bounds:
                     x0, y0, x1, y1 = pen.bounds
-                    self.assertGreaterEqual(y0, -260)
+                    self.assertGreaterEqual(y0, -180)
                     self.assertLessEqual(y1, 820)
                     self.assertGreaterEqual(x0, -1)
                     self.assertLessEqual(x1, width + 1)
@@ -206,12 +299,11 @@ class FontProof(unittest.TestCase):
         )
         s = pathops.Path()
         self.glyphs["S"].draw(s.getPen())
-        self.assertLess(
-            s.bounds[1], -200, "S must keep the reference’s descending spiral"
-        )
-        self.assertFalse(s.contains((240, 117)), "The spiral’s counter must stay open")
+        self.assertAlmostEqual(s.bounds[1], -12, delta=1)
+        self.assertAlmostEqual(s.bounds[3], 712, delta=1)
+        self.assertFalse(s.contains((177, 264)), "The spiral’s counter must stay open")
         self.assertTrue(
-            s.contains((260, -15)), "The inward spiral return must be present"
+            s.contains((192, 168)), "The inward spiral return must be present"
         )
 
     def test_h_curved_bridge_without_loop(self):
@@ -265,19 +357,20 @@ class FontProof(unittest.TestCase):
             difference = pathops.op(left, right, pathops.PathOp.XOR)
             self.assertLess(abs(difference.area), 0.01, name)
             self.assertEqual(self.font["hmtx"][name], default["hmtx"][name], name)
-        for width in [85, 92.5, 107.5, 115]:
-            f = hb.Font(hb.Face((ROOT / "fonts/Bathys-Variable.otf").read_bytes()))
-            f.set_variations({"wdth": width})
-            buf = hb.Buffer()
-            buf.add_str("CORINNE BAILEY RAE")
-            buf.guess_segment_properties()
-            hb.shape(f, buf)
-            self.assertTrue(all(pos.x_advance > 0 for pos in buf.glyph_positions))
-            self.assertAlmostEqual(
-                sum(pos.x_advance for pos in buf.glyph_positions),
-                sum(w for n, w in self.shape("CORINNE BAILEY RAE")) * width / 100,
-                delta=12,
-            )
+        for text in ["CORINNE BAILEY RAE", "AVATAR FABLE PALACE"]:
+            for width in [85, 92.5, 107.5, 115]:
+                f = hb.Font(hb.Face((ROOT / "fonts/Bathys-Variable.otf").read_bytes()))
+                f.set_variations({"wdth": width})
+                buf = hb.Buffer()
+                buf.add_str(text)
+                buf.guess_segment_properties()
+                hb.shape(f, buf)
+                self.assertTrue(all(pos.x_advance > 0 for pos in buf.glyph_positions))
+                self.assertAlmostEqual(
+                    sum(pos.x_advance for pos in buf.glyph_positions),
+                    sum(w for n, w in self.shape(text)) * width / 100,
+                    delta=12,
+                )
 
     def test_webfont_matches_otf(self):
         web = TTFont(ROOT / "fonts/Bathys-Regular.woff2")

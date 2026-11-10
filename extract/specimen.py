@@ -62,7 +62,7 @@ def proofs(glyph_order):
     body += svg_text("BATHYS", 70, 305, 240, "#eee6cf")
     body += label("01 / THE REFERENCE LETTERING", 80, 390)
     for s, y in [("CORINNE", 600), ("BAILEY", 792), ("RAE", 984)]:
-        body += svg_text(s, 78, y, 250, "#eee6cf")
+        body += svg_text(s, 78, y, 250, "#eee6cf", {"dlig": True})
     body += svg_text(
         "THE SEA / THE LOVE EP", 85, 1070, 46, "#d5ac72", {"smcp": True, "c2sc": True}
     )
@@ -91,10 +91,10 @@ def proofs(glyph_order):
     body += svg_text(
         "abcdefghijklmnopqrstuvwxyz", 65, 1070, 86, "#172d2b", {"smcp": True}
     )
-    body += label("DEFAULT LIGATURES / CO  OR  COR  BA  RA", 65, 1160)
-    body += svg_text("CO OR COR BA RA", 65, 1260, 111, "#172d2b")
-    body += label("DISCRETIONARY / OO  OC  LA  FY", 65, 1340)
-    body += svg_text("OO OC LA FY", 65, 1440, 111, "#172d2b", {"dlig": True})
+    body += label("DEFAULT LIGATURES / BA NN EY FY TH TE TR TU TW", 65, 1160)
+    body += svg_text("BA NN EY FY TH TE TR TU TW", 65, 1260, 82, "#172d2b")
+    body += label("DISCRETIONARY / CO OR COR RA OO OC", 65, 1340)
+    body += svg_text("CO OR COR RA OO OC", 65, 1440, 96, "#172d2b", {"dlig": True})
     body += svg_text("AVATAR  WAVE  TOY  NOON  MINIMUM", 65, 1530, 60, "#172d2b")
     body += label("D / P / J / V / W / 1 — OPEN BOWLS & CAP RETURNS", 65, 1640)
     body += svg_text("DPJVW1", 65, 1810, 205, "#172d2b")
@@ -104,6 +104,36 @@ def proofs(glyph_order):
     write_svg("Bathys-glyph-proof.svg", body, 1400, 2250)
     interlock_proof()
     reference_proof()
+    spacing_proof()
+
+
+def spacing_proof():
+    body = '<rect width="1600" height="1940" fill="#eee8d8"/>'
+    body += label("BATHYS / READING-SIZE SPACING / COMPILED SHAPING", 65, 65)
+    for text, y, size in [
+        ("AVATAR / WATER", 250, 144),
+        ("FABLE / PALACE / ROYAL", 430, 96),
+        ("OUTSIDE / LAST LIGHT", 590, 96),
+        ("DOPPLER / VIVID / JUPITER / WAVES", 750, 64),
+        ("CORINNE BAILEY RAE / ALPHA / OASIS / VOYAGER", 880, 48),
+        ("FJORD / POST / TASTEFUL / WATERSIDE", 1000, 48),
+        ("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1130, 64),
+        ("0123456789 / O0 / 101 / 1:01", 1250, 64),
+        ("THE SEA / SOMETHING IN THE STARS", 1410, 64),
+        ("THE SEA / SOMETHING IN THE STARS", 1530, 48),
+        ("THE SEA / SOMETHING IN THE STARS", 1630, 32),
+    ]:
+        body += svg_text(text, 65, y, size, "#102b2b")
+    body += label("OPTICAL SMALL CAPS / ACTUAL OPENTYPE SUBSTITUTIONS", 65, 1750)
+    body += svg_text(
+        "Corinne Bailey Rae / A vast and open sea",
+        65,
+        1850,
+        76,
+        "#102b2b",
+        {"smcp": True, "c2sc": True},
+    )
+    write_svg("Bathys-spacing-proof.svg", body, 1600, 1940)
 
 
 def interlock_proof():
@@ -153,7 +183,12 @@ def reference_proof():
         body += label(word, 50, y)
         body += f'<svg x="50" y="{y + 25}" width="{cw * 2}" height="{ch * 2}" viewBox="{cx} {cy} {cw} {ch}"><use href="#cover"/></svg>'
         body += svg_text(
-            word, 1200, y + 25 + (baseline - cy) * 2, cap * 2 / 700 * 1000, "#eee8d8"
+            word,
+            1200,
+            y + 25 + (baseline - cy) * 2,
+            cap * 2 / 700 * 1000,
+            "#eee8d8",
+            {"dlig": True},
         )
     body += label(
         "CHECK: HORIZONTAL C ENDS / OPEN R THROAT / BA COUNTER / CONTINUOUS EY / SECOND N UPPER RETURN",

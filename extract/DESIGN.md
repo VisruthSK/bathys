@@ -15,7 +15,7 @@ The artist-name lettering and the thin **THE SEA** subtitle are two different co
 | E / EY | Square arms; E’s top bar continues at full depth into Y’s left diagonal. EY has a custom bridge so the underside has no notch. FY uses the same construction. |
 | Y | Narrow fork, straight stem, flat terminals. |
 | N / NN | The flourish is a horizontal return at the TOP of the right stem. There is no spur below the baseline. NN has a narrower plain first N, a slightly wider returning second N, and an open gap between their stems. |
-| S | The subtitle’s outer and inner edges are hand-fitted in source-image coordinates in `reference/S.svg`, using the neighbouring E to set the cap height and baseline. The lower loop descends below that baseline, and its inward return and counter remain open. This is the default S. |
+| S | The subtitle’s outer and inner edges are hand-fitted in source-image coordinates in `reference/S.svg`, using the neighbouring E to set the cap height and baseline. The whole spiral is uniformly fitted to the -12/712 overshoot band with stroke compensation. Its inward return and counter remain open. This is the default S. |
 | H | The subtitle’s crossbar curves out of the lower left stem and rises into the right stem. Bathys keeps the main 66-unit stroke and straight stems; the bottom-left loop is omitted. |
 
 `Bathys-reference-study.svg` places the original raster lettering beside the new outlines at the same cap height. `Bathys-glyph-proof.svg` shows the alphabet, figures and word trials. `Bathys-ligatures.svg` shows every interlock at two sizes, alongside its unligated counterpart. The full original covers remain under `reference/` for comparison.
@@ -33,7 +33,7 @@ The optional `uv run extract/trace_s.py` extracts the S silhouette into `generat
 
 ## Features and interpolation
 
-- [Glyphs: Ligatures](https://glyphsapp.com/learn/ligatures) describes standard/discretionary substitutions and caret positions. The seven cover-related interlocks are standard; experimental combinations are discretionary. Longer interlocks accept already-formed standard ligatures.
+- [Glyphs: Ligatures](https://glyphsapp.com/learn/ligatures) describes standard/discretionary substitutions and caret positions. Clear cap-bar and foot joins, RA, AR and AE are standard. OR, COR and the denser overlapping circles remain discretionary. Longer interlocks accept already-formed standard ligatures.
 - [Microsoft: GDEF](https://learn.microsoft.com/en-us/typography/opentype/spec/gdef) defines carets inside ligatures. Bathys provides ordered internal caret positions for every interlock, in both sizes.
 - [Microsoft: Width axis](https://learn.microsoft.com/en-us/typography/opentype/spec/dvaraxistag_wdth) defines 100 as the normal-width value. Bathys uses a restrained 85–115 range, transforming matching cubic topology, spacing, kern values and carets together.
 - [FontTools: varLib](https://fonttools.readthedocs.io/en/latest/varLib/index.html) compiles the CFF2 variable font. Tests compare the default’s filled geometry with the static font and exercise both endpoints and intermediate positions. Width is deliberately mechanical; these are not separately optically redrawn condensed/expanded masters.
@@ -41,12 +41,20 @@ The optional `uv run extract/trace_s.py` extracts the S silhouette into `generat
 
 ## Scope of the extensions
 
-G follows the circular construction with an inward shelf. D and P use open returns related to R’s open throat. V and W retain diagonal valleys with a leftward upper return on their final strokes, repeating N’s cap flourish. J adds the same cap return over its hooked bowl. Zero is a narrower oval, with an optional slash; nine has an upright upper bowl and descending return.
+G has the approved downward hook; the bar reaches the outer bowl and is clipped to the same ellipse to remove the step at the connection. Q uses the approved flowing tail. D and P use open returns related to R’s open throat. V and W retain diagonal valleys with a leftward upper return on their final strokes, repeating N’s cap flourish. J adds the same cap return over its hooked bowl. Zero is a narrower oval, with an optional slash; nine has an upright upper bowl and descending return.
 
 The proportional lining one uses a single outline: its angled flag meets the upright at the 700-unit cap line. This replaces the overlapping diagonal bar that left the old top malformed. [Glyphs’ figure-set guidance](https://glyphsapp.com/learn/figure-sets) distinguishes these proportional lining figures from tabular and old-style sets.
 
 The extra interlocks use three recurring devices: overlapping circles, shared vertical stems and joined top bars. They are tested in words as well as pairs. FY, ET, FT, TE, AY and NY extend the top-bar relationships; LY connects its foot to Y’s stem. A heavily nested TA was rejected during proofing because the letter identities became ambiguous.
 
-RO, ON, OL, LO, OE, ORA, CORO and OOR are excluded from both sizes and both font formats.
+RO, ON, OL, LO, OE, ORA, CORO, OOR and TI are excluded. Only TH, TE, TR, TU and TW remain from the T-series; mechanically repetitive T combinations have been removed.
 
 A weight axis needs separate drawing work around BA’s narrow aperture, the R throat and the small-cap counters. The delivered width axis keeps those details intact. Weight is not simulated by thickening the outlines indiscriminately.
+
+## Validation and study boundary
+
+The compiled-font audit checks every contour and exact ink intersections in all 676 capital pairs and all 676 small-cap pairs. EY has intentional contact with standard ligatures disabled. The reading-size sheet checks the revised spacing in words from 32 to 144 units.
+
+Static/variable design outlines, default advances, webfont tables, ligatures, carets and width-axis endpoints are checked independently. Browser tests load OTF and WOFF2 in Chromium, Firefox and WebKit. Design-unit equality is measured at 1000 px; Windows Chromium rounds CFF2 device-pixel advances differently at smaller sizes.
+
+Production T keeps its flat bar; 7 keeps its original top and uses a straight crossbar, enforced by exact geometry tests. Rejected bar experiments have been removed. The accepted G/Q treatment is in the font. All rejected letter studies, Tide and the conventional S drawing have been removed.

@@ -11,6 +11,7 @@ from fontTools.svgLib.path import parse_path
 
 REFERENCE = Path(__file__).resolve().parent / "reference"
 GLYPHS = {}
+H_CROSSBAR = "M71,205 C71,310 122,359 228,359 L390,359 C495,359 547,410 547,515"
 
 
 def path(d):
@@ -67,7 +68,15 @@ def spiral_s():
     element = ET.parse(REFERENCE / "S.svg").find("{http://www.w3.org/2000/svg}path")
     outline = path(element.attrib["d"])
     scale = 700 / 42
-    return outline.transform(scale, 0, 0, -scale, 24 - 196 * scale, 497 * scale)
+    outline = outline.transform(scale, 0, 0, -scale, 24 - 196 * scale, 497 * scale)
+    # Fit the entire spiral in the capitals' overshoot band. Compensate its
+    # stroke before positioning, instead of leaving a thin, shrunken letter.
+    fit = (724 - 20) / (outline.bounds[3] - outline.bounds[1])
+    outline = transform(outline, fit)
+    edge = transform(outline)
+    edge.stroke(20, pathops.LineCap.BUTT_CAP, pathops.LineJoin.MITER_JOIN, 2)
+    outline = union(outline, edge)
+    return transform(outline, 1, 24 - outline.bounds[0], -12 - outline.bounds[1])
 
 
 def alphabet(t=66):
@@ -123,10 +132,16 @@ def alphabet(t=66):
     put("E", E, 482)
     put("F", union(stem, rect(38, 700 - t, 412, t), rect(38, 326, 354, t)), 475)
     G = difference(ring, rect(374, 350, 500, 140))
-    put("G", union(G, rect(450, 312, 274, 62)), 748)
+    g_arm = path("M724,343 L510,343 C473,343 450,321 450,286 L450,244")
+    g_arm.stroke(62, pathops.LineCap.BUTT_CAP, pathops.LineJoin.ROUND_JOIN, 2)
+    g_arm.convertConicsToQuads(0.1)
+    G = pathops.op(
+        union(G, g_arm), ellipse(374, 350, 350, 362), pathops.PathOp.INTERSECTION
+    )
+    put("G", G, 748)
     # Subtitle H's rising crossbar, at the main capitals' stroke weight.
     # The original descender loop is intentionally omitted.
-    h_bridge = path("M71,205 C71,310 122,359 228,359 L390,359 C495,359 547,410 547,515")
+    h_bridge = path(H_CROSSBAR)
     h_bridge.stroke(t, pathops.LineCap.BUTT_CAP, pathops.LineJoin.ROUND_JOIN, 2)
     h_bridge.convertConicsToQuads(0.1)
     put("H", union(stem, rect(514, 0, t, 700), h_bridge), 618)
@@ -170,15 +185,19 @@ def alphabet(t=66):
         "M38,0 L38,700 L250,700 C409,700 503,624 503,488 C503,353 415,276 244,276 L173,276 L173,342 L244,342 C362,342 432,388 432,488 C432,582 362,629 250,629 L109,629 L109,0 Z"
     )
     put("P", P, 545)
-    put("Q", union(ring, bar(468, 186, 730, -66, t)), 760)
+    q_tail = path("M470,180 C520,180 555,120 590,63 C625,6 665,-32 741,-32")
+    q_tail.stroke(t, pathops.LineCap.BUTT_CAP, pathops.LineJoin.ROUND_JOIN, 2)
+    q_tail.convertConicsToQuads(0.1)
+    put("Q", union(ring, q_tail), 760)
     # Traced from the standalone R in RAE: the bowl returns into the leg,
     # leaving an open throat beside the stem. There is no middle crossbar.
     R = path(
         "M38,0 L38,700 L250,700 C409,700 503,624 503,488 C503,353 415,276 303,259 L462,0 L379,0 L173,312 L244,312 C362,312 432,376 432,488 C432,582 362,629 250,629 L109,629 L109,0 Z"
     )
     put("R", R, 536)
-    put("S", spiral_s(), 738)
-    put("T", union(rect(20, 700 - t, 548, t), rect(294 - t / 2, 0, t, 700)), 588)
+    S = spiral_s()
+    put("S", S, round(S.bounds[2] + 24))
+    put("T", union(rect(20, 634, 548, 66), rect(261, 0, 66, 700)), 588)
     U = path(
         f"M38,700 L{38 + t},700 L{38 + t},238 C{38 + t},116 175,54 302,54 C429,54 500,116 500,238 L500,700 L{500 + t},700 L{500 + t},238 C{500 + t},77 470,-12 302,-12 C134,-12 38,77 38,238 Z"
     )
@@ -353,13 +372,13 @@ add(
     ),
     600,
 )
-add(
-    "seven",
-    poly(
-        [(28, 700), (568, 700), (568, 644), (235, 0), (159, 0), (492, 634), (28, 634)]
-    ),
-    596,
+seven_base = poly(
+    [(28, 700), (568, 700), (568, 644), (235, 0), (159, 0), (492, 634), (28, 634)]
 )
+seven=pathops.Path()
+for component in [seven_base,rect(230,321,300,58)]:
+    seven.addPath(pathops.simplify(component,fix_winding=True))
+add("seven", seven, 596)
 add(
     "eight",
     union(
@@ -433,15 +452,21 @@ for name, target in [
 
 # Interlocking positions are drawn compositions, with their intersections united.
 LIGS = {
-    "COR": ([0, 355, 820], 1356),
-    "CO": ([0, 355], 1080),
-    "OR": ([0, 465], 1001),
     "BA": ([0, 180], 816),
-    "RA": ([0, 235], 871),
     "NN": ([0, 543], 1187),
     "EY": ([0, 417], 987),
+    "FY": ([0, 417], 987),
+    "TH": ([0, 464], 1082),
+    "TE": ([0, 445], 927),
+    "TR": ([0, 459], 995),
+    "TU": ([0, 464], 1068),
+    "TW": ([0, 477], 1385),
 }
 DLIGS = {
+    "CO": ([0, 355], 1080),
+    "OR": ([0, 465], 1001),
+    "COR": ([0, 355, 820], 1356),
+    "RA": ([0, 235], 871),
     "OO": ([0, 545], 1293),
     "OC": ([0, 545], 1252),
     "OG": ([0, 520], 1268),
@@ -449,20 +474,18 @@ DLIGS = {
     "AE": ([0, 469], 951),
     "AR": ([0, 469], 1005),
     "AT": ([0, 515], 1103),
-    "TY": ([0, 515], 1085),
-    "TH": ([0, 445], 1063),
-    "TT": ([0, 480], 1068),
     "HE": ([0, 476], 958),
     "NE": ([0, 502], 984),
     "COO": ([0, 355, 900], 1648),
-    "FY": ([0, 417], 987),
     "ET": ([0, 420], 1008),
     "FT": ([0, 420], 1008),
-    "TE": ([0, 445], 927),
     "AY": ([0, 515], 1085),
     "NY": ([0, 538], 1108),
     "LY": ([0, 90], 660),
 }
+# Clear cap-bar and foot joins are normal; dense monograms remain optional.
+for clear_join in ("LA", "AT", "ET", "FT", "AY", "RA", "AR", "AE"):
+    LIGS[clear_join] = DLIGS.pop(clear_join)
 SC_NN_GAP = 9
 for seq, (positions, width) in (LIGS | DLIGS).items():
     for suffix, scale in [("", 1), (".sc", 0.74)]:
