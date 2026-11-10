@@ -6,7 +6,7 @@ A retains the asymmetric original drawing in `reference/Bathys.gs2`. BA translat
 
 The adopted P/J/D/G/Q terminal faces are cut 20 degrees from their original orientation. Cuts extend past the curved edges to avoid slivers. This changes the exposed endings while preserving the main curves and advances. [Fontfabric’s terminal guide](https://www.fontfabric.com/blog/typography-knowledge-terminals-typography/) describes these as sheared terminals; [Glyphs’ harmonization guide](https://glyphsapp.com/learn/harmonization) relates opposing contours to the writing tool.
 
-Zero has a fuller oval and a 66-unit normal stroke. Six retains a circular lower bowl and counter, with an upright left stem and a compact curved upper shoulder. Nine has a circular upper bowl and a straight right stem. Figures use the same −12/712 round overshoots as the capitals. [Briem’s numeral-spacing method](https://help.fontlab.com/fontlab/8/tutorials/briem/5-0-spacing/briem-5-05-numerals/) informs the alternating-number rows on the specimen page.
+Zero has a fuller oval and a 66-unit normal stroke. Six retains a circular lower bowl and counter, with an upright left stem and a compact curved upper shoulder. Nine has a circular upper bowl and a straight right stem. Figures use the same −12/712 round overshoots as the capitals.
 
 ## Joining
 
@@ -20,8 +20,12 @@ Kerning inherits the outside letters of a compound or contextual form; an outgoi
 
 `reference/S.path` stores the hand-finished spiral contour. The optional `trace_s.py` extracts a comparison contour and mask without overwriting it. The `.path` files contain plain drawing commands, not complete image documents.
 
-All visual proofing now happens in `index.html` using the actual font. `specimen-data.js` is generated from the catalogue; presentation and controls live in `specimen.css` and `specimen.js`. There are no vector proof sheets. The page uses the cream, espresso, oxblood, teal and ochre palette from `../brand/inst/_brand.yml`.
+The committed static site lives in `dist/`. `specimen-data.js` is generated from the catalogue; presentation and controls live in `specimen.css` and `specimen.js`. There are no vector proof sheets. The page uses the cream, espresso, oxblood and ochre palette from `../brand/inst/_brand.yml`.
 
-The specimen's hierarchy draws on [GT Standard](https://www.grillitype.com/typeface/gt-standard) and [Diatype](https://abcdinamo.com/typefaces/diatype): editable samples and width comparisons come first; dense character and feature references stay available below. Six featured interlocks introduce the construction before the full catalogue. The type tester remains a native plain-text field.
+The specimen's hierarchy draws on [GT Standard](https://www.grillitype.com/typeface/gt-standard), [Diatype](https://abcdinamo.com/typefaces/diatype), [Degular](https://ohnotype.co/fonts/degular), [Söhne](https://klim.co.nz/fonts/soehne/) and [Druk](https://commercialtype.com/catalog/druk): the editable sample leads into display settings and feature examples. Six featured interlocks introduce the construction before the full catalogue. The character inspector is always visible below Small capitals in the Letters section. Album covers remain visible in two columns.
 
-Response headers follow the same-origin approach in `../VisruthSK.github.io/public/_headers`, with no inline-script exceptions or external assets. The published directory contains only the allowlisted site files. Source tools stay in Git but outside the deployed artifact. A local preview uses the exported `_headers` and `_redirects`, so HTTP tests check the same configuration that the static host receives.
+Response headers follow the same-origin approach in `../VisruthSK.github.io/public/_headers`, with no inline-script exceptions or external assets. Cloudflare serves `dist/` directly and applies `_headers`. There are no server, export or redirect helpers.
+
+The public release is 1.0; OpenType version fields use the conventional `1.000` representation. Font metadata embeds the copyright and complete SIL Open Font License 1.1 from `dist/OFL.txt`. The size controls use CSS points. The top introduction and Reference section retain explicit `TODO: WRITE` placeholders for the owner's copy.
+
+The tester defaults to 64 pt and a single-line pangram value. Numeric fields allow direct entry, and each slider resets to its own default on double-click. Typed size and tracking values can extend the slider range; width stays within the font’s 85–115 axis. The public gallery presents final forms only.

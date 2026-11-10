@@ -16,12 +16,32 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class FontProof(unittest.TestCase):
+    def test_release_version_and_ofl_metadata(self):
+        license_text = (ROOT / "dist/OFL.txt").read_text(encoding="utf-8")
+        for filename in [
+            "Bathys-Regular.otf",
+            "Bathys-Regular.woff2",
+            "Bathys-Variable.otf",
+            "Bathys-Variable.woff2",
+        ]:
+            font = TTFont(ROOT / "dist/fonts" / filename)
+            self.assertEqual(font["head"].fontRevision, 1.0)
+            self.assertEqual(font["name"].getDebugName(5), "Version 1.000")
+            self.assertEqual(font["name"].getDebugName(13), license_text)
+            self.assertIn("Visruth Srimath Kandali", font["name"].getDebugName(0))
+            self.assertEqual(
+                font["name"].getDebugName(14),
+                "https://openfontlicense.org/open-font-license-official-text/",
+            )
+
     @classmethod
     def setUpClass(cls):
-        cls.font = TTFont(ROOT / "fonts/Bathys-Regular.otf", checkChecksums=2)
+        cls.font = TTFont(ROOT / "dist/fonts/Bathys-Regular.otf", checkChecksums=2)
         cls.glyphs = cls.font.getGlyphSet()
         cls.order = cls.font.getGlyphOrder()
-        cls.hbfont = hb.Font(hb.Face((ROOT / "fonts/Bathys-Regular.otf").read_bytes()))
+        cls.hbfont = hb.Font(
+            hb.Face((ROOT / "dist/fonts/Bathys-Regular.otf").read_bytes())
+        )
 
     def shape(self, text, **features):
         b = hb.Buffer()
@@ -546,7 +566,7 @@ class FontProof(unittest.TestCase):
                 self.assertEqual(positions, sorted(set(positions)))
 
     def test_variable_default_and_extremes(self):
-        variable = TTFont(ROOT / "fonts/Bathys-Variable.otf")
+        variable = TTFont(ROOT / "dist/fonts/Bathys-Variable.otf")
         axis = variable["fvar"].axes[0]
         self.assertEqual(
             (axis.axisTag, axis.minValue, axis.defaultValue, axis.maxValue),
@@ -564,7 +584,9 @@ class FontProof(unittest.TestCase):
             self.assertEqual(self.font["hmtx"][name], default["hmtx"][name], name)
         for text in ["CORINNE BAILEY RAE", "AVATAR FABLE PALACE"]:
             for width in [85, 92.5, 107.5, 115]:
-                f = hb.Font(hb.Face((ROOT / "fonts/Bathys-Variable.otf").read_bytes()))
+                f = hb.Font(
+                    hb.Face((ROOT / "dist/fonts/Bathys-Variable.otf").read_bytes())
+                )
                 f.set_variations({"wdth": width})
                 buf = hb.Buffer()
                 buf.add_str(text)
@@ -578,7 +600,7 @@ class FontProof(unittest.TestCase):
                 )
 
     def test_webfont_matches_otf(self):
-        web = TTFont(ROOT / "fonts/Bathys-Regular.woff2")
+        web = TTFont(ROOT / "dist/fonts/Bathys-Regular.woff2")
         self.assertEqual(web["head"].modified, self.font["head"].modified)
         self.assertEqual(web.getBestCmap(), self.font.getBestCmap())
         self.assertEqual(web["hmtx"].metrics, self.font["hmtx"].metrics)

@@ -22,7 +22,7 @@ from outlines import (
 )
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "fonts"
+OUT = ROOT / "dist/fonts"
 GENERATED = ROOT / "extract/generated"
 
 
@@ -105,7 +105,8 @@ def build():
             "FullName": "Bathys Regular",
             "FamilyName": "Bathys",
             "Weight": "Regular",
-            "version": "1.600",
+            "version": "1.000",
+            "Notice": "Copyright (c) 2026 Visruth Srimath Kandali",
         },
         cs,
         {"BlueValues": [-12, 0, 700, 712], "StdHW": 66, "StdVW": 66},
@@ -116,12 +117,15 @@ def build():
     fb.setupHorizontalHeader(ascent=820, descent=-180, lineGap=80)
     fb.setupNameTable(
         {
+            "copyright": "Copyright (c) 2026 Visruth Srimath Kandali",
             "familyName": "Bathys",
             "styleName": "Regular",
-            "uniqueFontIdentifier": "Bathys-Regular-1.600",
+            "uniqueFontIdentifier": "Bathys-Regular-1.000",
             "fullName": "Bathys Regular",
             "psName": "Bathys-Regular",
-            "version": "Version 1.600",
+            "version": "Version 1.000",
+            "licenseDescription": (ROOT / "dist/OFL.txt").read_text(encoding="utf-8"),
+            "licenseInfoURL": "https://openfontlicense.org/open-font-license-official-text/",
             "description": "Circular display capitals, open-throated R, returning N, interlocks and a spiral S.",
         }
     )
@@ -324,7 +328,7 @@ def build():
     feature_text = "\n".join(fea)
     (GENERATED / "Bathys.fea").write_text(feature_text)
     addOpenTypeFeaturesFromString(fb.font, feature_text)
-    fb.font["head"].fontRevision = 1.600
+    fb.font["head"].fontRevision = 1.000
     fb.font["head"].created = fb.font["head"].modified = (
         int(datetime(2026, 11, 9, tzinfo=UTC).timestamp()) + 2082844800
     )
@@ -346,9 +350,9 @@ def main():
     for directory in [OUT, GENERATED]:
         directory.mkdir(parents=True, exist_ok=True)
     build()
-    from specimen import write_proof_data
+    from specimen import write_specimen_data
 
-    write_proof_data()
+    write_specimen_data()
     (GENERATED / "glyph-data.json").write_text(
         json.dumps(
             {

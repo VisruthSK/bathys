@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Bathys: geometric display capitals, a spiral S, small caps and automatic interlocks. Try the font and inspect the complete specimen."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; connect-src 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <title>Bathys · Type specimen</title>
+    <link rel="icon" href="assets/icon.png" type="image/png" sizes="32x32" />
+    <link rel="stylesheet" href="specimen.css" />
+    <link
+      rel="preload"
+      href="fonts/Bathys-Variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <script src="specimen-data.js" defer></script>
+    <script src="specimen.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#type">Skip to the type tester</a>
+    <header class="site-header wrap">
+      <h1 class="site-title font">
+        <a class="wordmark" href="#top" aria-label="Bathys, top of page"
+          >Bathys</a
+        >
+      </h1>
+      <nav aria-label="Specimen">
+        <a href="#try">Try</a><a href="#samples">Specimens</a
+        ><a href="#reference">Reference</a><a href="#download">Download</a>
+      </nav>
+      <button
+        id="theme"
+        class="theme-button"
+        type="button"
+        aria-pressed="false"
+      >
+        Dark paper
+      </button>
+    </header>
+
+    <main id="top" class="wrap">
+      <section class="cover" aria-label="Opening specimen">
+        <div class="cover-top">
+          <span>Display capitals</span>
+          <span>Small caps / Variable width</span>
+        </div>
+        <p class="font cover-title">SPHINX OF<br />BLACK QUARTZ,</p>
+        <p class="font cover-close">JUDGE MY VOW.</p>
+        <div class="cover-bottom">
+          <span>Regular / Width 85–115</span
+          ><a href="#download">Download fonts</a>
+        </div>
+      </section>
+
+      <section id="try" class="section tester" aria-labelledby="try-title">
+          <p class="etymology">
+  <span lang="grc">βαθύς</span>
+  <span class="etymology-origin">Ancient Greek · adjective</span>
+  <span class="etymology-definition">
+    Deep; extending far beneath the surface.
+  </span>
+</p>
+        <div class="about-writing" aria-label="About Bathys">
+          <p class="writing-placeholder">
+Bathys grew out of the lettering used for Corinne Bailey Rae’s name on *The Sea* and *The Love EP* (which were **not** designed by me). Some letter pairs connect automatically; optional ligatures produce tighter overlaps closer to the original artwork. Bathys works best in titles and other short lines of text.
+          </p>
+        </div>
+        <div class="section-head">
+          <h2 id="try-title">Try Bathys</h2>
+        </div>
+        <div class="controls">
+          <div class="range-control">
+            <div class="control-caption">
+              <label for="size">Size</label
+              ><label class="control-value"
+                ><input
+                  id="sizeValue"
+                  type="number"
+                  value="64"
+                  step="any"
+                  min="1"
+                  aria-label="Size in pt"
+                /><span aria-hidden="true">pt</span></label
+              >
+            </div>
+            <input
+              id="size"
+              type="range"
+              min="21"
+              max="150"
+              value="64"
+              step="any"
+            />
+          </div>
+          <div class="range-control">
+            <div class="control-caption">
+              <label for="width">Width</label
+              ><label class="control-value"
+                ><input
+                  id="widthValue"
+                  type="number"
+                  value="100"
+                  step="any"
+                  min="85"
+                  max="115"
+                  aria-label="Width in %"
+                /><span aria-hidden="true">%</span></label
+              >
+            </div>
+            <input
+              id="width"
+              type="range"
+              min="85"
+              max="115"
+              value="100"
+              step="any"
+            />
+          </div>
+          <div class="range-control">
+            <div class="control-caption">
+              <label for="tracking">Tracking</label
+              ><label class="control-value"
+                ><input
+                  id="trackingValue"
+                  type="number"
+                  value="0"
+                  step="any"
+                  aria-label="Tracking in px"
+                /><span aria-hidden="true">px</span></label
+              >
+            </div>
+            <input
+              id="tracking"
+              type="range"
+              min="-2"
+              max="12"
+              value="0"
+              step="any"
+            />
+          </div>
+          <div class="switches">
+            <label><input id="liga" type="checkbox" checked />Ligatures</label
+            ><label><input id="dlig" type="checkbox" />Optional</label
+            ><label><input id="smallcaps" type="checkbox" />Small caps</label>
+          </div>
+          <button id="reset" class="text-button" type="button">
+            Reset settings
+          </button>
+        </div>
+        <textarea
+          id="type"
+          class="font editable"
+          aria-label="Write in Bathys"
+          spellcheck="false"
+          rows="1"
+        >
+SPHINX OF BLACK QUARTZ, JUDGE MY VOW.</textarea
+        >
+
+        <noscript
+          ><p>
+            The samples and downloads work without JavaScript. Enable JavaScript
+            to use the controls.
+          </p></noscript
+        >
+      </section>
+
+      <section
+        id="samples"
+        class="section samples"
+        aria-labelledby="samples-title"
+      >
+        <div class="section-head">
+          <h2 id="samples-title">Specimens</h2>
+        </div>
+        <p class="font sample-xl">AFTER HOURS<br />SILVER SCREEN</p>
+        <p class="font sample-lg">PRIVATE VIEW / LATE MATINEE</p>
+        <p class="font sample-md">AN EVENING AT THE THEATRE</p>
+        <p class="font sample-sm">LOVE IN SLOW MOTION</p>
+        <p class="font sample-sm sc">THURSDAY THROUGH SUNDAY</p>
+        <p class="font specimen-feature">FEVER<br />EVERYWHERE</p>
+        <div class="width-comparison" aria-label="Variable width comparison">
+          <div>
+            <span class="caption">Narrow / 85</span>
+            <p class="font width-narrow">QUARTZ</p>
+          </div>
+          <div>
+            <span class="caption">Regular / 100</span>
+            <p class="font">QUARTZ</p>
+          </div>
+          <div>
+            <span class="caption">Wide / 115</span>
+            <p class="font width-wide">QUARTZ</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="alphabet" class="section" aria-labelledby="alphabet-title">
+        <div class="section-head">
+          <h2 id="alphabet-title">Letters</h2>
+        </div>
+        <div class="alphabet-rows font">
+          <p>ABCDEFG</p>
+          <p>HIJKLMN</p>
+          <p>OPQRSTU</p>
+          <p>VWXYZ</p>
+        </div>
+        <div class="smallcap-row">
+          <span class="caption">Small capitals</span>
+          <p class="font sc">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+        </div>
+        <div class="character-inspector" aria-labelledby="inspector-title">
+          <h3 id="inspector-title">Inspect a character</h3>
+          <div class="inspection">
+            <div class="inspection-tools">
+              <label for="glyph"
+                >Character<input
+                  id="glyph"
+                  class="glyph-entry font"
+                  type="text"
+                  value="S"
+                  maxlength="1"
+                  spellcheck="false"
+                  autocapitalize="characters"
+              /></label>
+              <div class="range-control">
+                <div class="control-caption">
+                  <label for="glyphSize">Size</label
+                  ><label class="control-value"
+                    ><input
+                      id="glyphSizeValue"
+                      type="number"
+                      value="255"
+                      step="any"
+                      min="1"
+                      aria-label="Size in pt"
+                    /><span aria-hidden="true">pt</span></label
+                  >
+                </div>
+                <input
+                  id="glyphSize"
+                  type="range"
+                  min="135"
+                  max="345"
+                  value="255"
+                  step="any"
+                />
+              </div>
+            </div>
+            <div class="glyph-stage">
+              <span id="glyphView" class="font" aria-live="polite">S</span>
+            </div>
+          </div>
+        </div>
+        <p class="font punctuation">.,:;!? &amp; / + = ( ) ‘ ’ “ ”</p>
+      </section>
+
+      <section id="joins" class="section" aria-labelledby="joins-title">
+        <div class="section-head">
+          <h2 id="joins-title">Ligatures</h2>
+        </div>
+        <div id="featuredPairs" class="pair-grid featured-pairs"></div>
+        <details>
+          <summary>All ligatures <span id="standardCount"></span></summary>
+          <div id="pairs" class="pair-grid"></div>
+        </details>
+        <details class="optional-joins">
+          <summary>Additional ligatures</summary>
+          <div id="optionalPairs" class="pair-grid"></div>
+        </details>
+        <p class="font joining-words">
+          AN EVENING AT THE THEATRE<br />A VIEW OF THE WATER
+        </p>
+      </section>
+
+      <section id="reference" class="section" aria-labelledby="reference-title">
+        <div class="section-head"><h2 id="reference-title">Reference</h2></div>
+        <p class="writing-placeholder">
+        The lettering on these covers provided Bathys’s first ten capitals: A, B, C, E, I, L, N, O, R, and Y. The spiral S and raised crossbar take cues from the smaller title on *The Sea*. Artwork and design for *The Sea* are credited to Alex Cowper; *The Love EP* credits Randall Leddy for design and Gordon H. Jee for creative direction.
+        </p>
+        <div class="covers">
+          <figure>
+            <img
+              src="assets/sea.jpg"
+              alt="Corinne Bailey Rae, The Sea"
+              loading="lazy"
+              width="1360"
+              height="1360"
+            />
+            <figcaption>The Sea · 2010</figcaption>
+          </figure>
+          <figure>
+            <img
+              src="assets/LoveEP.jpg"
+              alt="Corinne Bailey Rae, The Love EP"
+              loading="lazy"
+              width="1000"
+              height="1000"
+            />
+            <figcaption>The Love EP · 2011</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        id="download"
+        class="section download-section"
+        aria-labelledby="download-title"
+      >
+        <div class="section-head">
+          <h2 id="download-title">Download</h2>
+          <p>OpenType fonts and webfonts. Width range 85–115.</p>
+        </div>
+        <div class="downloads">
+          <a href="fonts/Bathys-Regular.otf" download
+            >Regular OTF<span>Desktop</span></a
+          ><a href="fonts/Bathys-Variable.otf" download
+            >Variable OTF<span>Desktop · Width axis</span></a
+          ><a href="fonts/Bathys-Regular.woff2" download
+            >Regular WOFF2<span>Web</span></a
+          ><a href="fonts/Bathys-Variable.woff2" download
+            >Variable WOFF2<span>Web · Width axis</span></a
+          >
+        </div>
+      </section>
+    </main>
+    <footer class="wrap site-footer">
+      <span>Bathys <span id="version">1.0</span></span
+      ><a href="OFL.txt">SIL Open Font License 1.1</a
+      ><a href="#top">Back to top</a>
+    </footer>
+  </body>
+</html>

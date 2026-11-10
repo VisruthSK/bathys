@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def audit():
-    filename = ROOT / "fonts/Bathys-Regular.otf"
+    filename = ROOT / "dist/fonts/Bathys-Regular.otf"
     font = TTFont(filename)
     glyphs = font.getGlyphSet()
     order = font.getGlyphOrder()
