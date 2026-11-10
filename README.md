@@ -2,9 +2,33 @@
 
 Display capitals inspired by the lettering on Corinne Bailey Rae’s _The Sea_ and _The Love EP_. Includes optical small caps, a spiral S, open bowls and automatic interlocks.
 
-**[Open the specimen](proof.html)** · [Regular OTF](fonts/Bathys-Regular.otf) · [Variable OTF](fonts/Bathys-Variable.otf)
+**[Open the specimen](index.html)** · [Regular OTF](fonts/Bathys-Regular.otf) · [Variable OTF](fonts/Bathys-Variable.otf)
 
-The specimen contains a free-writing box, the complete alphabet, numeral checks, ligature comparisons, joining sequences and album references. HTML, CSS and JavaScript are separate files. All assets are local; the page uses no third-party scripts or services. Colours follow `../brand/inst/_brand.yml`.
+The specimen starts with a free-writing box and samples at different sizes and widths. Character inspection, the full ligature catalogue and album comparisons open on demand. HTML, CSS and JavaScript are separate files. All assets are local; the page uses no third-party scripts or services. Colours follow `../brand/inst/_brand.yml`.
+
+## Serve and publish
+
+Preview the public export with its response headers:
+
+```powershell
+uv run --project extract --locked extract/serve.py
+```
+
+Open `http://127.0.0.1:8765/`. The preview exports only public assets to `dist/`, serves `index.html` at the root and applies `_headers`. It does not expose the build tools or directory listings.
+
+For Cloudflare Pages, use these settings:
+
+| Setting                | Value                        |
+| ---------------------- | ---------------------------- |
+| Framework preset       | None                         |
+| Build command          | `python3 extract/publish.py` |
+| Build output directory | `dist`                       |
+
+The export uses Python's standard library and the committed fonts; deployment does not need Node or font-building dependencies. You can also run `python3 extract/publish.py` and upload `dist/` to another static host.
+
+[`_headers`](_headers) sets the CSP, frame restrictions, MIME sniffing protection, referrer policy, cross-origin policies, permissions policy and HTTPS HSTS. Files revalidate rather than retaining stale font builds. The HTML retains a fallback CSP. [`_redirects`](_redirects) sends the former `/proof.html` address to `/`.
+
+[Cloudflare Pages applies `_headers` to static responses](https://developers.cloudflare.com/pages/configuration/headers/). Other hosts need equivalent response-header configuration; an ordinary file server does not apply this file automatically.
 
 ## Use the font
 
@@ -33,16 +57,16 @@ Keep tracking at zero for connected lettering. Disable `calt` for pair-only comp
 
 ## Build and check
 
-Sources and build tools stay in [`extract/`](extract/), with dependencies locked by uv. The compiler writes the four font files and `proof-data.js`; the page uses the compiled font for every sample.
+Sources and build tools stay in [`extract/`](extract/), with dependencies locked by uv. The compiler writes the four font files and `specimen-data.js`; the page uses the compiled font for every sample.
 
 ```powershell
 uv run --project extract --locked --python 3.13 extract/build.py --check
 uv run --project extract --locked extract/audit.py
 uv run --project extract --locked ruff check extract
-uv run --project extract --locked python -m http.server 8765 --bind 127.0.0.1
+uv run --project extract --locked python -m unittest discover -s extract -p test_publish.py
 ```
 
-Open `http://127.0.0.1:8765/proof.html`. Browser checks use Chromium, Firefox and WebKit:
+With the preview server running, browser checks use Chromium, Firefox and WebKit:
 
 ```powershell
 uv run --project extract --locked playwright install chromium firefox webkit

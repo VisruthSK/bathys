@@ -94,7 +94,9 @@ function pairs(catalogue, target, optional) {
   }
 }
 pairs(data.standard, "pairs", false);
+pairs(["BA", "NN", "EY", "TH", "WT", "EA"], "featuredPairs", false);
 pairs(data.optional, "optionalPairs", true);
+byId("standardCount").textContent = `(${data.standard.length})`;
 
 for (const word of data.chains) byId("chains").append(node("span", "", word));
 for (const control of data.figures) {

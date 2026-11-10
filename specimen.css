@@ -37,6 +37,14 @@ body {
     15px/1.6 system-ui,
     sans-serif;
 }
+.error-page {
+  padding-block: 100px;
+}
+.error-page h1 {
+  font-size: 32px;
+  font-weight: 500;
+  margin-block: 16px 28px;
+}
 button,
 select,
 textarea,
@@ -193,6 +201,33 @@ nav a {
   color: #f2e8de;
   padding: 32px 42px;
 }
+.pair-grid.featured-pairs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.width-comparison {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+  padding-top: 25px;
+}
+.width-comparison .caption {
+  color: var(--muted);
+}
+.width-comparison .font {
+  font-size: clamp(38px, 5.2vw, 70px);
+  padding-top: 20px;
+}
+.width-narrow {
+  font-variation-settings: "wdth" 85;
+}
+.width-wide {
+  font-variation-settings: "wdth" 115;
+}
+.glyph-details .inspection {
+  margin-top: 0;
+}
 .cover-top,
 .cover-bottom {
   display: flex;
@@ -207,14 +242,14 @@ nav a {
   color: #c9baae;
 }
 .cover-title {
-  font-size: clamp(70px, 11vw, 151px);
-  padding-block: 58px 20px;
+  font-size: clamp(70px, 10.6vw, 136px);
+  padding-block: 40px 16px;
   line-height: 1.04;
 }
 .cover-close {
   font-size: clamp(39px, 6vw, 80px);
   color: #f0bc5c;
-  padding-bottom: 60px;
+  padding-bottom: 40px;
 }
 .cover-bottom {
   border-top: 1px solid #6b5b52;
@@ -573,7 +608,7 @@ details[open] summary {
   padding-block: 22px;
 }
 .reference-crop {
-  background-image: url("extract/reference/sea.jpg");
+  background-image: url("assets/sea.jpg");
   background-repeat: no-repeat;
 }
 .crop-corinne {
@@ -695,6 +730,17 @@ body.dark .sample-tile {
 }
 
 @media (max-width: 650px) {
+  .pair-grid.featured-pairs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .width-comparison {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .width-comparison .font {
+    font-size: 62px;
+    padding-top: 8px;
+  }
   .wrap {
     width: calc(100% - 40px);
   }

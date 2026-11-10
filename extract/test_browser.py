@@ -1,5 +1,7 @@
 """Exercise the live specimen in Chromium, Firefox and WebKit."""
 
+from contextlib import closing
+from http.client import HTTPConnection
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -24,6 +26,41 @@ MEASURE = """() => {
 }"""
 
 
+def check_http():
+    for path, expected in [
+        ("/", 200),
+        ("/index.html", 200),
+        ("/specimen.css", 200),
+        ("/specimen.js", 200),
+        ("/fonts/Bathys-Variable.woff2", 200),
+        ("/assets/icon.png", 200),
+        ("/proof.html", 301),
+        ("/extract/build.py", 404),
+        ("/README.md", 404),
+        ("/_headers", 404),
+        ("/%5fheaders", 404),
+        ("/fonts/", 404),
+    ]:
+        for method in ["GET", "HEAD"]:
+            with closing(HTTPConnection("127.0.0.1", 8765)) as connection:
+                connection.request(method, path)
+                response = connection.getresponse()
+                assert response.status == expected, (method, path, response.status)
+                assert response.getheader("X-Content-Type-Options") == "nosniff"
+                assert "frame-ancestors 'none'" in response.getheader(
+                    "Content-Security-Policy"
+                )
+                assert response.getheader("Cache-Control") == "no-cache"
+                if path == "/proof.html":
+                    assert response.getheader("Location") == "/"
+                body = response.read()
+                if expected == 404 and method == "GET":
+                    assert body == (ROOT / "404.html").read_bytes()
+    print(
+        "PASS HTTP: index, response headers, legacy redirect, private files and directory listings."
+    )
+
+
 def check_browser(engine, name):
     browser = engine.launch(headless=True)
     page = browser.new_page(viewport={"width": 1440, "height": 1000})
@@ -32,17 +69,34 @@ def check_browser(engine, name):
     page.add_init_script("""window.policyViolations = [];
       document.addEventListener('securitypolicyviolation', e =>
         window.policyViolations.push(e.violatedDirective + ': ' + e.blockedURI));""")
-    page.goto("http://127.0.0.1:8765/proof.html")
+    response = page.goto("http://127.0.0.1:8765/")
+    assert response.status == 200
+    headers = response.headers
+    assert "frame-ancestors 'none'" in headers["content-security-policy"]
+    assert headers["x-content-type-options"] == "nosniff"
+    assert headers["x-frame-options"] == "DENY"
+    assert headers["referrer-policy"] == "no-referrer"
+    assert headers["cross-origin-opener-policy"] == "same-origin"
     page.evaluate("document.fonts.ready")
     initial_policy_reports = page.evaluate("window.policyViolations")
     # WebKit 27.2 reports its own <select> shadow-tree styles against CSP:
     # https://bugs.webkit.org/show_bug.cgi?id=327212. Keep the page's strict
-    # policy, allow only those two initial native-control reports, and reject
+    # policy, allow only the initial native-control reports (one per select
+    # and policy), and reject
     # any additional report produced by application controls or screenshots.
+    policy_count = (
+        1 + page.locator('meta[http-equiv="Content-Security-Policy"]').count()
+    )
+    native_reports = page.locator("select").count() * policy_count
     assert not initial_policy_reports or (
-        name == "webkit" and initial_policy_reports == ["style-src-attr: inline"] * 2
+        name == "webkit"
+        and initial_policy_reports == ["style-src-attr: inline"] * native_reports
     ), initial_policy_reports
     assert page.locator("#type").input_value().startswith("SPHINX OF BLACK QUARTZ")
+    text_width = "e => {const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect().width;}"
+    narrow = page.locator(".width-narrow").evaluate(text_width)
+    wide = page.locator(".width-wide").evaluate(text_width)
+    assert wide > narrow * 1.3, "Width examples must use real font variations"
     assert page.locator("#pairs small").all_text_contents() == [
         f"{p} / STANDARD" for p in LIGS
     ]
@@ -107,9 +161,11 @@ def check_browser(engine, name):
     assert (
         page.locator("#type").input_value() == "SPHINX OF BLACK QUARTZ,\nJUDGE MY VOW."
     )
+    page.locator(".glyph-details").evaluate("element => element.open = true")
     page.locator("#glyph").select_option("6")
     assert page.locator("#glyphView").inner_text() == "6"
     page.locator("#glyph").select_option("S")
+    page.locator(".glyph-details").evaluate("element => element.open = false")
     assert page.evaluate("window.policyViolations") == initial_policy_reports
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     page.locator("#theme").click()
@@ -158,6 +214,7 @@ def check_browser(engine, name):
 
 
 if __name__ == "__main__":
+    check_http()
     with sync_playwright() as playwright:
         for name in ["chromium", "firefox", "webkit"]:
             check_browser(getattr(playwright, name), name)

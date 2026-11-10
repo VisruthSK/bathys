@@ -20,4 +20,8 @@ Kerning inherits the outside letters of a compound or contextual form; an outgoi
 
 `reference/S.path` stores the hand-finished spiral contour. The optional `trace_s.py` extracts a comparison contour and mask without overwriting it. The `.path` files contain plain drawing commands, not complete image documents.
 
-All visual proofing now happens in `proof.html` using the actual font. `proof-data.js` is generated from the catalogue; presentation and controls live in `proof.css` and `proof.js`. There are no vector proof sheets. The page uses the cream, espresso, oxblood, teal and ochre palette from `../brand/inst/_brand.yml`.
+All visual proofing now happens in `index.html` using the actual font. `specimen-data.js` is generated from the catalogue; presentation and controls live in `specimen.css` and `specimen.js`. There are no vector proof sheets. The page uses the cream, espresso, oxblood, teal and ochre palette from `../brand/inst/_brand.yml`.
+
+The specimen's hierarchy draws on [GT Standard](https://www.grillitype.com/typeface/gt-standard) and [Diatype](https://abcdinamo.com/typefaces/diatype): editable samples and width comparisons come first; dense character and feature references stay available below. Six featured interlocks introduce the construction before the full catalogue. The type tester remains a native plain-text field.
+
+Response headers follow the same-origin approach in `../VisruthSK.github.io/public/_headers`, with no inline-script exceptions or external assets. The published directory contains only the allowlisted site files. Source tools stay in Git but outside the deployed artifact. A local preview uses the exported `_headers` and `_redirects`, so HTTP tests check the same configuration that the static host receives.

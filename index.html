@@ -13,7 +13,8 @@
     />
     <meta name="referrer" content="no-referrer" />
     <title>Bathys · Type specimen</title>
-    <link rel="stylesheet" href="proof.css" />
+    <link rel="icon" href="assets/icon.png" type="image/png" sizes="32x32" />
+    <link rel="stylesheet" href="specimen.css" />
     <link
       rel="preload"
       href="fonts/Bathys-Variable.woff2"
@@ -21,14 +22,14 @@
       type="font/woff2"
       crossorigin
     />
-    <script src="proof-data.js" defer></script>
-    <script src="proof.js" defer></script>
+    <script src="specimen-data.js" defer></script>
+    <script src="specimen.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#type">Skip to the type tester</a>
     <header class="site-header wrap">
       <a class="wordmark" href="#top" aria-label="Bathys, top of page"
-        >Bathys<span class="edition">Display / 01</span></a
+        >Bathys<span class="edition">Display typeface</span></a
       >
       <nav aria-label="Specimen">
         <a href="#try">Try it</a><a href="#alphabet">Letters</a
@@ -54,15 +55,14 @@
         <p class="font cover-title">SPHINX OF<br />BLACK QUARTZ,</p>
         <p class="font cover-close">JUDGE MY VOW.</p>
         <div class="cover-bottom">
-          <span>Regular / Variable width</span
-          ><a href="#try">Set your own words</a>
+          <span>Regular / Width 85–115</span
+          ><a href="#download">Download fonts</a>
         </div>
       </section>
 
       <section id="try" class="section tester" aria-labelledby="try-title">
         <div class="section-head">
-          <h2 id="try-title"><span>01</span> Your words</h2>
-          <p>Write here. Change the size, width and spacing.</p>
+          <h2 id="try-title">Try Bathys</h2>
         </div>
         <div class="controls">
           <label class="range-label" for="size"
@@ -123,58 +123,13 @@ JUDGE MY VOW.</textarea
         >
       </section>
 
-      <section id="alphabet" class="section" aria-labelledby="alphabet-title">
-        <div class="section-head">
-          <h2 id="alphabet-title"><span>02</span> Letters</h2>
-          <p>Open bowls. A returning N. The coiled S.</p>
-        </div>
-        <div class="alphabet-rows font">
-          <p>ABCDEFG</p>
-          <p>HIJKLMN</p>
-          <p>OPQRSTU</p>
-          <p>VWXYZ</p>
-        </div>
-        <div class="smallcap-row">
-          <span class="caption">Small capitals</span>
-          <p class="font sc">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-        </div>
-        <p class="font punctuation">.,:;!? &amp; / + = ( ) ‘ ’ “ ”</p>
-        <div class="inspection">
-          <div class="inspection-tools">
-            <h3>Look closer</h3>
-            <label for="glyph"
-              >Character
-              <select id="glyph"></select></label
-            ><label for="glyphSize"
-              >Size
-              <input
-                id="glyphSize"
-                type="range"
-                min="180"
-                max="460"
-                value="340"
-            /></label>
-            <p class="note">P, J, D, G and Q use 20° terminal cuts.</p>
-          </div>
-          <div class="glyph-stage">
-            <span id="glyphView" class="font" aria-live="polite">S</span>
-          </div>
-        </div>
-        <div
-          class="terminal-strip font"
-          aria-label="Letters with angled terminal cuts"
-        >
-          <span>P</span><span>J</span><span>D</span><span>G</span><span>Q</span>
-        </div>
-      </section>
-
       <section
         id="samples"
         class="section samples"
         aria-labelledby="samples-title"
       >
         <div class="section-head">
-          <h2 id="samples-title"><span>03</span> In words</h2>
+          <h2 id="samples-title">Specimens</h2>
         </div>
         <p class="font sample-xl">THE SEA<br />AFTER HOURS</p>
         <p class="font sample-lg">JUPITER / AQUA / LOW TIDE</p>
@@ -187,14 +142,80 @@ JUDGE MY VOW.</textarea
           <p class="font">FEVER<br />EVERYWHERE</p>
           <p class="caption">EV / EW / AV / AW</p>
         </div>
+        <div class="width-comparison" aria-label="Variable width comparison">
+          <div>
+            <span class="caption">Narrow / 85</span>
+            <p class="font width-narrow">QUARTZ</p>
+          </div>
+          <div>
+            <span class="caption">Regular / 100</span>
+            <p class="font">QUARTZ</p>
+          </div>
+          <div>
+            <span class="caption">Wide / 115</span>
+            <p class="font width-wide">QUARTZ</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="alphabet" class="section" aria-labelledby="alphabet-title">
+        <div class="section-head">
+          <h2 id="alphabet-title">Letters</h2>
+        </div>
+        <div class="alphabet-rows font">
+          <p>ABCDEFG</p>
+          <p>HIJKLMN</p>
+          <p>OPQRSTU</p>
+          <p>VWXYZ</p>
+        </div>
+        <div class="smallcap-row">
+          <span class="caption">Small capitals</span>
+          <p class="font sc">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+        </div>
+        <p class="font punctuation">.,:;!? &amp; / + = ( ) ‘ ’ “ ”</p>
+        <details class="glyph-details">
+          <summary>Inspect a character</summary>
+          <div class="inspection">
+            <div class="inspection-tools">
+              <h3>Look closer</h3>
+              <label for="glyph"
+                >Character
+                <select id="glyph"></select></label
+              ><label for="glyphSize"
+                >Size
+                <input
+                  id="glyphSize"
+                  type="range"
+                  min="180"
+                  max="460"
+                  value="340"
+              /></label>
+              <p class="note">P, J, D, G and Q use 20° terminal cuts.</p>
+            </div>
+            <div class="glyph-stage">
+              <span id="glyphView" class="font" aria-live="polite">S</span>
+            </div>
+          </div>
+          <div
+            class="terminal-strip font"
+            aria-label="Letters with angled terminal cuts"
+          >
+            <span>P</span><span>J</span><span>D</span><span>G</span
+            ><span>Q</span>
+          </div>
+        </details>
       </section>
 
       <section id="joins" class="section" aria-labelledby="joins-title">
         <div class="section-head">
-          <h2 id="joins-title"><span>04</span> Interlocks</h2>
+          <h2 id="joins-title">Ligatures</h2>
           <p>Ordinary spacing above; joined letters below.</p>
         </div>
-        <div id="pairs" class="pair-grid"></div>
+        <div id="featuredPairs" class="pair-grid featured-pairs"></div>
+        <details>
+          <summary>All standard joins <span id="standardCount"></span></summary>
+          <div id="pairs" class="pair-grid"></div>
+        </details>
         <details class="optional-joins">
           <summary>
             Extra joins <span>Overlapping circles and denser combinations</span>
@@ -237,8 +258,7 @@ JUDGE MY VOW.</textarea
 
       <section id="figures" class="section" aria-labelledby="figures-title">
         <div class="section-head">
-          <h2 id="figures-title"><span>05</span> Figures</h2>
-          <p>A fuller zero. A curved shoulder on six. An upright nine.</p>
+          <h2 id="figures-title">Figures</h2>
         </div>
         <p class="font figure-hero">069</p>
         <p class="font figure-row">0123456789</p>
@@ -257,7 +277,7 @@ JUDGE MY VOW.</textarea
         aria-labelledby="spacing-title"
       >
         <div class="section-head">
-          <h2 id="spacing-title"><span>06</span> Rhythm</h2>
+          <h2 id="spacing-title">Rhythm</h2>
         </div>
         <p class="font spacing-lg">AVATAR / WATER</p>
         <p class="font spacing-md">FABLE / PALACE / ROYAL</p>
@@ -271,42 +291,45 @@ JUDGE MY VOW.</textarea
 
       <section id="origins" class="section" aria-labelledby="origins-title">
         <div class="section-head">
-          <h2 id="origins-title"><span>07</span> The references</h2>
+          <h2 id="origins-title">The references</h2>
           <p>Drawn from Corinne Bailey Rae’s album lettering.</p>
         </div>
-        <div class="reference-labels">
-          <span>Album lettering</span><span>Bathys</span>
-        </div>
-        <div class="reference-pair">
-          <div
-            class="reference-crop crop-corinne"
-            role="img"
-            aria-label="CORINNE on The Sea album cover"
-          ></div>
-          <p class="font reference-word ref-corinne">CORINNE</p>
-        </div>
-        <div class="reference-pair">
-          <div
-            class="reference-crop crop-bailey"
-            role="img"
-            aria-label="BAILEY on The Sea album cover"
-          ></div>
-          <p class="font reference-word ref-bailey">BAILEY</p>
-        </div>
-        <div class="reference-pair">
-          <div
-            class="reference-crop crop-rae"
-            role="img"
-            aria-label="RAE on The Sea album cover"
-          ></div>
-          <p class="font reference-word ref-rae">RAE</p>
-        </div>
+        <details>
+          <summary>Compare the album lettering</summary>
+          <div class="reference-labels">
+            <span>Album lettering</span><span>Bathys</span>
+          </div>
+          <div class="reference-pair">
+            <div
+              class="reference-crop crop-corinne"
+              role="img"
+              aria-label="CORINNE on The Sea album cover"
+            ></div>
+            <p class="font reference-word ref-corinne">CORINNE</p>
+          </div>
+          <div class="reference-pair">
+            <div
+              class="reference-crop crop-bailey"
+              role="img"
+              aria-label="BAILEY on The Sea album cover"
+            ></div>
+            <p class="font reference-word ref-bailey">BAILEY</p>
+          </div>
+          <div class="reference-pair">
+            <div
+              class="reference-crop crop-rae"
+              role="img"
+              aria-label="RAE on The Sea album cover"
+            ></div>
+            <p class="font reference-word ref-rae">RAE</p>
+          </div>
+        </details>
         <details>
           <summary>Full album covers</summary>
           <div class="covers">
             <figure>
               <img
-                src="extract/reference/sea.jpg"
+                src="assets/sea.jpg"
                 alt="Corinne Bailey Rae, The Sea"
                 loading="lazy"
                 width="1360"
@@ -316,7 +339,7 @@ JUDGE MY VOW.</textarea
             </figure>
             <figure>
               <img
-                src="extract/reference/LoveEP.jpg"
+                src="assets/LoveEP.jpg"
                 alt="Corinne Bailey Rae, The Love EP"
                 loading="lazy"
                 width="1000"
@@ -334,7 +357,7 @@ JUDGE MY VOW.</textarea
         aria-labelledby="download-title"
       >
         <div class="section-head">
-          <h2 id="download-title"><span>08</span> Files</h2>
+          <h2 id="download-title">Download</h2>
           <p>OpenType fonts and webfonts. Width range 85–115.</p>
         </div>
         <div class="downloads">
