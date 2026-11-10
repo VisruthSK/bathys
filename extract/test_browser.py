@@ -54,6 +54,20 @@ def check_browser(browser_type, engine_name):
     assert page.evaluate(measure) < plain_tu * 0.95, (
         "TU must actually form its ligature"
     )
+    page.locator("#type").fill("ATH")
+    widths = page.locator("#type").evaluate("""e=>{
+      const range=document.createRange();range.selectNodeContents(e);
+      const original=e.style.fontFeatureSettings;
+      e.style.fontFeatureSettings='"liga" 1,"calt" 1,"kern" 1';const chain=range.getBoundingClientRect().width;
+      e.style.fontFeatureSettings='"liga" 1,"calt" 0,"kern" 1';const pair=range.getBoundingClientRect().width;
+      e.style.fontFeatureSettings=original;return {chain,pair};
+    }""")
+    assert widths["chain"] < widths["pair"] * 0.95, (
+        "ATH must connect on both sides of T"
+    )
+    page.locator("#type").screenshot(
+        path=str(ROOT / f"extract/generated/context-chain-{engine_name}.png")
+    )
     page.locator("#dlig").uncheck()
     page.locator("#type").fill(original)
     page.locator("#smallcaps").check()
@@ -94,7 +108,13 @@ def check_browser(browser_type, engine_name):
     )
     assert not errors, errors
     page.set_viewport_size({"width": 1600, "height": 1640})
-    for name in ["glyph-proof", "reference-study", "ligatures", "spacing-proof"]:
+    for name in [
+        "glyph-proof",
+        "reference-study",
+        "ligatures",
+        "spacing-proof",
+        "joining-proof",
+    ]:
         page.set_content(
             f'<img style="width:1580px" src="http://127.0.0.1:8765/svg/Bathys-{name}.svg">'
         )

@@ -16,7 +16,8 @@ from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
 
-from outlines import DLIGS, GLYPHS, LIGS, SC_NN_GAP
+from joining import chain_feature_code
+from outlines import DLIGS, GLYPHS, JOIN_FORMS, LIGS, SC_NN_GAP
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "fonts"
@@ -103,7 +104,7 @@ def build():
             "FullName": "Bathys Regular",
             "FamilyName": "Bathys",
             "Weight": "Regular",
-            "version": "1.400",
+            "version": "1.500",
         },
         cs,
         {"BlueValues": [-12, 0, 700, 712], "StdHW": 66, "StdVW": 66},
@@ -116,10 +117,10 @@ def build():
         {
             "familyName": "Bathys",
             "styleName": "Regular",
-            "uniqueFontIdentifier": "Bathys-Regular-1.400",
+            "uniqueFontIdentifier": "Bathys-Regular-1.500",
             "fullName": "Bathys Regular",
             "psName": "Bathys-Regular",
-            "version": "Version 1.400",
+            "version": "Version 1.500",
             "description": "Circular display capitals, open-throated R, returning N, interlocks and a spiral S.",
         }
     )
@@ -146,10 +147,13 @@ def build():
         for c in letters:
             fea.append(f"sub {c} by {c.upper()}.sc;")
         fea.append(f"}} {tag};")
+    classes, chain_rules = chain_feature_code(LIGS)
+    fea.extend(classes)
     # Normalize capitals aliases only after the small-cap substitutions.
     fea.append("feature calt {")
     for c in "abcdefghijklmnopqrstuvwxyz":
         fea.append(f"sub {c} by {c.upper()};")
+    fea.extend(chain_rules)
     fea.append("} calt;")
     for tag, ligs in [("liga", LIGS), ("dlig", DLIGS)]:
         fea.append(f"feature {tag} {{")
@@ -264,11 +268,19 @@ def build():
     # Every ligature inherits the spacing of its outside letters.
     edges = {c: (c, c) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
     edges.update({"_".join(seq): (seq[0], seq[-1]) for seq in LIGS | DLIGS})
+    edges.update(
+        {
+            name: (form["base"], form["base"])
+            for name, form in JOIN_FORMS.items()
+            if not form["suffix"]
+        }
+    )
     pairs = {
         (left, right): v
         for pair, v in kerns.items()
         for left, (_, end) in edges.items()
         if end == pair[0]
+        if left not in JOIN_FORMS or JOIN_FORMS[left]["target"] is None
         for right, (start, _) in edges.items()
         if start == pair[1]
     }
@@ -303,7 +315,7 @@ def build():
     feature_text = "\n".join(fea)
     (GENERATED / "Bathys.fea").write_text(feature_text)
     addOpenTypeFeaturesFromString(fb.font, feature_text)
-    fb.font["head"].fontRevision = 1.4
+    fb.font["head"].fontRevision = 1.5
     fb.font["head"].created = fb.font["head"].modified = (
         int(datetime(2026, 11, 9, tzinfo=UTC).timestamp()) + 2082844800
     )
@@ -340,7 +352,7 @@ def main():
             outline.draw(pen)
             filename = "lower-" + name if len(name) == 1 and name.islower() else name
             (target / f"{filename}.svg").write_text(
-                f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -820 {width + 40} 1100"><path transform="scale(1,-1)" d="{pen.getCommands()}"/></svg>'
+                f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -820 {max(width, outline.bounds[2]) + 40} 1100"><path transform="scale(1,-1)" d="{pen.getCommands()}"/></svg>'
             )
     (GENERATED / "glyph-data.json").write_text(
         json.dumps(

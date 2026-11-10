@@ -375,9 +375,9 @@ add(
 seven_base = poly(
     [(28, 700), (568, 700), (568, 644), (235, 0), (159, 0), (492, 634), (28, 634)]
 )
-seven=pathops.Path()
-for component in [seven_base,rect(230,321,300,58)]:
-    seven.addPath(pathops.simplify(component,fix_winding=True))
+seven = pathops.Path()
+for component in [seven_base, rect(230, 321, 300, 58)]:
+    seven.addPath(pathops.simplify(component, fix_winding=True))
 add("seven", seven, 596)
 add(
     "eight",
@@ -515,3 +515,23 @@ for seq, (positions, width) in (LIGS | DLIGS).items():
         add(
             "_".join(seq) + suffix, outline, width * scale + gap + (10 if suffix else 0)
         )
+
+
+# One glyph per character in multi-join runs. Advances encode existing joins.
+JOIN_FORMS = {}
+for suffix in ["", ".sc"]:
+    for letter in sorted(set("".join(LIGS))):
+        name = f"{letter}.chain{suffix}"
+        add(name, *GLYPHS[letter + suffix])
+        JOIN_FORMS[name] = {"base": letter, "target": None, "suffix": suffix}
+    for left, right in LIGS:
+        pair = left + right
+        name = f"{left}.join_{right}{suffix}"
+        source = "N.plain" if pair == "NN" else left
+        outline = GLYPHS[source + suffix][0]
+        if pair in {"EY", "FY"}:
+            bridge = rect(438, 634, 38, 66)
+            outline = union(outline, smallcap(bridge) if suffix else bridge)
+        advance = GLYPHS["_".join(pair) + suffix][1] - GLYPHS[right + suffix][1]
+        add(name, outline, advance)
+        JOIN_FORMS[name] = {"base": left, "target": right, "suffix": suffix}

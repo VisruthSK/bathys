@@ -58,3 +58,11 @@ The compiled-font audit checks every contour and exact ink intersections in all 
 Static/variable design outlines, default advances, webfont tables, ligatures, carets and width-axis endpoints are checked independently. Browser tests load OTF and WOFF2 in Chromium, Firefox and WebKit. Design-unit equality is measured at 1000 px; Windows Chromium rounds CFF2 device-pixel advances differently at smaller sizes.
 
 Production T keeps its flat bar; 7 keeps its original top and uses a straight crossbar, enforced by exact geometry tests. Rejected bar experiments have been removed. The accepted G/Q treatment is in the font. All rejected letter studies, Tide and the conventional S drawing have been removed.
+
+## Composable joining
+
+Longer runs use contextual alternates, retaining one glyph per character. A marking pass identifies runs with at least two compatible connections, an endpoint pass includes their first and last letters, and a resolving pass selects outgoing forms. Their advances come from the existing pair placements. Terminal forms retain the ordinary advance. There are no word-specific ATH or BATH glyphs.
+
+A/T/H keep their original ink. EY/FY retain their purpose-built cap bridge, and NN retains the plain-first/returning-last construction. Outgoing advances already encode a join, so ordinary pair kerning is suppressed inside a connected run; kerning is inherited normally at its outside edges. Negative right sidebearings on outgoing forms are intentional. Individual letters remain selectable.
+
+Tests cover every valid connected run of three, four and five letters in capitals and small caps, plus explicit ATH positions of 0, 515 and 979. `calt=0` retains the legacy pair-only path. The poster and cover comparison use that mode for the reference lettering.

@@ -9,7 +9,7 @@ from fontTools.pens.boundsPen import BoundsPen
 from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
-from outlines import DLIGS, LIGS
+from outlines import DLIGS, JOIN_FORMS, LIGS
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -174,10 +174,12 @@ class FontProof(unittest.TestCase):
         )
         actual = pathops.Path()
         self.glyphs["seven"].draw(actual.getPen())
-        crossbar=pathops.Path()
-        parse_path('M230,321 L530,321 L530,379 L230,379 Z',crossbar.getPen())
-        expected=pathops.op(original,crossbar,pathops.PathOp.UNION)
-        self.assertLess(abs(pathops.op(expected,actual,pathops.PathOp.XOR).area),.01)
+        crossbar = pathops.Path()
+        parse_path("M230,321 L530,321 L530,379 L230,379 Z", crossbar.getPen())
+        expected = pathops.op(original, crossbar, pathops.PathOp.UNION)
+        self.assertLess(
+            abs(pathops.op(expected, actual, pathops.PathOp.XOR).area), 0.01
+        )
         t = pathops.Path()
         self.glyphs["T"].draw(t.getPen())
         original_t = pathops.Path()
@@ -212,6 +214,64 @@ class FontProof(unittest.TestCase):
             [n for n, w in self.shape("C O R")], ["C", "space", "O", "space", "R"]
         )
 
+    def test_bidirectional_joining_without_ath_glyph(self):
+        self.assertNotIn("A_T_H", self.order)
+        buffer = hb.Buffer()
+        buffer.add_str("ATH")
+        buffer.guess_segment_properties()
+        hb.shape(self.hbfont, buffer)
+        self.assertEqual([info.cluster for info in buffer.glyph_infos], [0, 1, 2])
+        self.assertEqual(
+            self.shape("ATH"), [("A.join_T", 515), ("T.join_H", 464), ("H.chain", 618)]
+        )
+        self.assertEqual(
+            [n for n, w in self.shape("ETH")], ["E.join_T", "T.join_H", "H.chain"]
+        )
+        self.assertEqual(
+            [n for n, w in self.shape("ATU")], ["A.join_T", "T.join_U", "U.chain"]
+        )
+        self.assertEqual(
+            [n for n, w in self.shape("BATH")],
+            ["B.join_A", "A.join_T", "T.join_H", "H.chain"],
+        )
+        self.assertEqual([n for n, w in self.shape("ATH", calt=False)], ["A_T", "H"])
+        self.assertEqual(
+            [n for n, w in self.shape("ATH", calt=False, liga=False)], ["A", "T", "H"]
+        )
+        self.assertFalse(
+            any(".join_" in n or ".chain" in n for n, w in self.shape("AT H"))
+        )
+
+    def test_joining_preserves_a_t_and_h_ink(self):
+        for base, form in [("A", "A.join_T"), ("T", "T.join_H"), ("H", "H.chain")]:
+            left = pathops.Path()
+            right = pathops.Path()
+            self.glyphs[base].draw(left.getPen())
+            self.glyphs[form].draw(right.getPen())
+            self.assertLess(abs(pathops.op(left, right, pathops.PathOp.XOR).area), 0.01)
+        self.assertEqual(
+            [n for n, w in self.shape("ath", smcp=True)],
+            ["A.join_T.sc", "T.join_H.sc", "H.chain.sc"],
+        )
+
+    def test_all_valid_joining_chains(self):
+        runs = set(LIGS)
+        for _ in range(3):
+            runs = {
+                run + right for run in runs for left, right in LIGS if run[-1] == left
+            }
+            for run in runs:
+                expected = [
+                    f"{left}.join_{right}"
+                    for left, right in zip(run, run[1:], strict=False)
+                ] + [run[-1] + ".chain"]
+                self.assertEqual([n for n, w in self.shape(run)], expected, run)
+                self.assertEqual(
+                    [n for n, w in self.shape(run.lower(), smcp=True)],
+                    [n + ".sc" for n in expected],
+                    run,
+                )
+
     def test_kerning(self):
         self.assertLess(
             sum(w for n, w in self.shape("AV")),
@@ -242,7 +302,8 @@ class FontProof(unittest.TestCase):
                     self.assertGreaterEqual(y0, -180)
                     self.assertLessEqual(y1, 820)
                     self.assertGreaterEqual(x0, -1)
-                    self.assertLessEqual(x1, width + 1)
+                    if name not in JOIN_FORMS or JOIN_FORMS[name]["target"] is None:
+                        self.assertLessEqual(x1, width + 1)
                     self.assertLessEqual(abs(lsb - x0), 1)
         self.assertEqual(self.font["OS/2"].sCapHeight, 700)
         self.assertEqual(self.font["OS/2"].sxHeight, 518)

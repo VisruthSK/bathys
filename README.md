@@ -6,6 +6,8 @@ Circular display capitals drawn from Corinne Bailey Rae’s **The Sea** and **Th
 
 The proof includes a width slider, small caps and ligature switches. For close inspection, open the [glyph and word proof](svg/Bathys-glyph-proof.svg), [cover comparison](svg/Bathys-reference-study.svg), [complete ligature sheet](svg/Bathys-ligatures.svg), [reading-size spacing proof](svg/Bathys-spacing-proof.svg), or [rendered font proof](svg/Bathys-rendered-proof.png). All SVG lettering is outlined.
 
+[Contextual joining proof](svg/Bathys-joining-proof.svg) shows both sides of ATH connected without a dedicated ATH glyph.
+
 ## OpenType features
 
 | Feature | What it does |
@@ -13,10 +15,13 @@ The proof includes a width slider, small caps and ligature switches. For close i
 | `liga` | BA, NN, EY, FY, TH, TE, TR, TU, TW, LA, AT, ET, FT, AY, RA, AR, AE |
 | `dlig` | CO, OR, COR, OO, OC, OG, HE, NE, COO, NY, LY |
 | `smcp`, `c2sc` | Optical small caps, including every ligature |
+| `calt` | Composable joins in longer runs such as ATH, BATH and LAE; lowercase capital aliases |
 | `zero` | Slashed zero; ordinary zero is already narrower than O |
 | `kern` | Pair spacing inherited by the outside letters of each ligature |
 
 Lowercase input displays as capitals. The flowing S is the ordinary S, including in small caps; its full spiral fits the standard cap/baseline band. Keep tracking at zero for the cover setting. The CFF2 variable font has a **width axis from 85–115**, with the reference construction at 100. Static and variable defaults have identical filled outlines and metrics. This is a width family; it does not claim a weight axis.
+
+Contextual alternates select individual joining forms in runs of three or more connected letters. Isolated pairs retain their existing ligatures. Disable `calt` for pair-only composition; disable both `calt` and `liga` for unconnected text. The proof's Ligatures switch controls both. The cover-comparison SVG deliberately uses pair-only composition for the original lettering.
 
 ```css
 @font-face {
@@ -27,7 +32,7 @@ Lowercase input displays as capitals. The flowing S is the ordinary S, including
 .title {
   font-family: Bathys;
   font-variation-settings: "wdth" 100;
-  font-feature-settings: "liga" 1, "kern" 1;
+  font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
 }
 ```
 

@@ -54,26 +54,44 @@ def write_svg(name, body, w, h):
     )
 
 
+def joining_proof():
+    body = '<rect width="1600" height="1760" fill="#eee8d8"/>'
+    body += label("BATHYS / COMPOSABLE JOINS / NO ATH GLYPH", 65, 65)
+    for title, features, y in [
+        ("UNCONNECTED", {"liga": False, "calt": False}, 300),
+        ("PAIR LIGATURES ONLY", {"calt": False}, 610),
+        ("CONTEXTUAL CHAIN / A + T + H", {}, 920),
+    ]:
+        body += label(title, 65, y - 180)
+        body += svg_text("ATH", 65, y, 230, "#102b2b", features)
+    body += svg_text("BATH / ETH / ATU / LAE", 65, 1140, 110, "#102b2b")
+    body += svg_text(
+        "ATH  BATH  ETH  ATU  LAE", 65, 1320, 105, "#102b2b", {"c2sc": True}
+    )
+    body += svg_text("ATH / ETH / ATU", 65, 1470, 64, "#102b2b")
+    body += svg_text("ATH / ETH / ATU", 65, 1580, 40, "#102b2b")
+    body += label(
+        "ORIGINAL A, T AND H OUTLINES / EACH LETTER REMAINS SELECTABLE", 65, 1700
+    )
+    write_svg("Bathys-joining-proof.svg", body, 1600, 1760)
+
+
 def proofs(glyph_order):
     global order
     order = glyph_order
     body = '<rect width="1400" height="1800" fill="#0d2425"/><circle cx="1190" cy="300" r="350" fill="none" stroke="#39504a"/><circle cx="1190" cy="300" r="285" fill="none" stroke="#39504a"/>'
     body += label("BATHYS / A STUDY IN CIRCLES, SPACE & SOUND", 80, 70)
-    body += svg_text("BATHYS", 70, 305, 240, "#eee6cf")
-    body += label("01 / THE REFERENCE LETTERING", 80, 390)
-    for s, y in [("CORINNE", 600), ("BAILEY", 792), ("RAE", 984)]:
-        body += svg_text(s, 78, y, 250, "#eee6cf", {"dlig": True})
+    body += label("01 / THE REFERENCE LETTERING", 80, 145)
+    for s, y in [("CORINNE", 350), ("BAILEY", 542), ("RAE", 734)]:
+        body += svg_text(s, 78, y, 250, "#eee6cf", {"dlig": True, "calt": False})
     body += svg_text(
-        "THE SEA / THE LOVE EP", 85, 1070, 46, "#d5ac72", {"smcp": True, "c2sc": True}
+        "THE SEA / THE LOVE EP", 85, 820, 46, "#d5ac72", {"smcp": True, "c2sc": True}
     )
-    body += label("02 / AFTER THE LAST LIGHT", 80, 1190)
-    for s, y in [("WE ORBIT", 1325), ("THE SAME SUN.", 1440)]:
+    body += label("02 / AFTER THE LAST LIGHT", 80, 1040)
+    for s, y in [("WE ORBIT", 1175), ("THE SAME SUN.", 1290)]:
         body += svg_text(s, 80, y, 132, "#eee6cf")
     body += svg_text(
-        "and carry the sea into the stars", 85, 1555, 49, "#d5ac72", {"smcp": True}
-    )
-    body += label(
-        "CUBIC OUTLINES / INTERLOCKING LIGATURES / OPTICAL SMALL CAPITALS", 80, 1700
+        "and carry the sea into the stars", 85, 1405, 49, "#d5ac72", {"smcp": True}
     )
     write_svg("Bathys-poster.svg", body, 1400, 1800)
     body = '<rect width="1400" height="1600" fill="#f4eedf"/>'
@@ -94,7 +112,9 @@ def proofs(glyph_order):
     body += label("DEFAULT LIGATURES / BA NN EY FY TH TE TR TU TW", 65, 1160)
     body += svg_text("BA NN EY FY TH TE TR TU TW", 65, 1260, 82, "#172d2b")
     body += label("DISCRETIONARY / CO OR COR RA OO OC", 65, 1340)
-    body += svg_text("CO OR COR RA OO OC", 65, 1440, 96, "#172d2b", {"dlig": True})
+    body += svg_text(
+        "CO OR COR RA OO OC", 65, 1440, 96, "#172d2b", {"dlig": True, "calt": False}
+    )
     body += svg_text("AVATAR  WAVE  TOY  NOON  MINIMUM", 65, 1530, 60, "#172d2b")
     body += label("D / P / J / V / W / 1 — OPEN BOWLS & CAP RETURNS", 65, 1640)
     body += svg_text("DPJVW1", 65, 1810, 205, "#172d2b")
@@ -105,6 +125,7 @@ def proofs(glyph_order):
     interlock_proof()
     reference_proof()
     spacing_proof()
+    joining_proof()
 
 
 def spacing_proof():
@@ -151,7 +172,9 @@ def interlock_proof():
         body += svg_text(
             sequence, x, y + 92, size, "#89938a", {"liga": False, "dlig": False}
         )
-        body += svg_text(sequence, x, y + 197, size, "#102b2b", {"dlig": True})
+        body += svg_text(
+            sequence, x, y + 197, size, "#102b2b", {"dlig": True, "calt": False}
+        )
         body += svg_text(
             sequence.lower(), x, y + 253, 62, "#a77b45", {"dlig": True, "smcp": True}
         )
@@ -188,7 +211,7 @@ def reference_proof():
             y + 25 + (baseline - cy) * 2,
             cap * 2 / 700 * 1000,
             "#eee8d8",
-            {"dlig": True},
+            {"dlig": True, "calt": False},
         )
     body += label(
         "CHECK: HORIZONTAL C ENDS / OPEN R THROAT / BA COUNTER / CONTINUOUS EY / SECOND N UPPER RETURN",
