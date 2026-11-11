@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Bathys: geometric display capitals, a spiral S, small caps and automatic interlocks. Try the font and inspect the complete specimen."
+      content="Bathys is a retro-futurist geometric display typeface with interlocking capitals and optional ligatures. View the specimen and try the font."
     />
     <meta
       http-equiv="Content-Security-Policy"
@@ -27,24 +27,28 @@
   </head>
   <body>
     <a class="skip" href="#type">Skip to the type tester</a>
-    <header class="site-header wrap">
-      <h1 class="site-title font">
-        <a class="wordmark" href="#top" aria-label="Bathys, top of page"
-          >Bathys</a
+    <header class="site-header">
+      <div class="site-header-inner wrap">
+        <h1 class="site-title font">
+          <a class="wordmark" href="#top" aria-label="Bathys, top of page">
+            Bathys
+          </a>
+        </h1>
+        <nav aria-label="Specimen">
+          <a href="#try">Try</a>
+          <a href="#samples">Specimens</a>
+          <a href="#reference">Reference</a>
+          <a href="#download">Download</a>
+        </nav>
+        <button
+          id="theme"
+          class="theme-button"
+          type="button"
+          aria-pressed="false"
         >
-      </h1>
-      <nav aria-label="Specimen">
-        <a href="#try">Try</a><a href="#samples">Specimens</a
-        ><a href="#reference">Reference</a><a href="#download">Download</a>
-      </nav>
-      <button
-        id="theme"
-        class="theme-button"
-        type="button"
-        aria-pressed="false"
-      >
-        Dark paper
-      </button>
+          Dark paper
+        </button>
+      </div>
     </header>
 
     <main id="top" class="wrap">
@@ -56,22 +60,24 @@
         <p class="font cover-title">SPHINX OF<br />BLACK QUARTZ,</p>
         <p class="font cover-close">JUDGE MY VOW.</p>
         <div class="cover-bottom">
-          <span>Regular / Width 85–115</span
-          ><a href="#download">Download fonts</a>
+          <span>Regular / Width 85–115</span>
+          <a href="#download">Download fonts</a>
         </div>
       </section>
 
       <section id="try" class="section tester" aria-labelledby="try-title">
-          <p class="etymology">
-  <span lang="grc">βαθύς</span>
-  <span class="etymology-origin">Ancient Greek · adjective</span>
-  <span class="etymology-definition">
-    Deep; extending far beneath the surface.
-  </span>
-</p>
-        <div class="about-writing" aria-label="About Bathys">
-          <p class="writing-placeholder">
-Bathys grew out of the lettering used for Corinne Bailey Rae’s name on *The Sea* and *The Love EP* (which were **not** designed by me). Some letter pairs connect automatically; optional ligatures produce tighter overlaps closer to the original artwork. Bathys works best in titles and other short lines of text.
+        <div class="intro" aria-label="About Bathys">
+          <div class="name-note">
+            <p class="name-label">Ancient Greek · adjective</p>
+            <p class="name-origin" lang="grc">βαθύς</p>
+            <p class="name-meaning">Deep; extending far beneath the surface.</p>
+          </div>
+          <p class="prose">
+            Bathys is a retro-futurist geometric display typeface based on the
+            lettering used for Corinne Bailey Rae’s name on
+            <cite>The Sea</cite> and <cite>The Love EP</cite>. Its curved,
+            interlocking capitals can be joined more tightly using optional
+            ligatures. It is intended for titles and short lines of text.
           </p>
         </div>
         <div class="section-head">
@@ -80,17 +86,18 @@ Bathys grew out of the lettering used for Corinne Bailey Rae’s name on *The Se
         <div class="controls">
           <div class="range-control">
             <div class="control-caption">
-              <label for="size">Size</label
-              ><label class="control-value"
-                ><input
+              <label for="size">Size</label>
+              <label class="control-value">
+                <input
                   id="sizeValue"
                   type="number"
                   value="64"
                   step="any"
                   min="1"
                   aria-label="Size in pt"
-                /><span aria-hidden="true">pt</span></label
-              >
+                />
+                <span aria-hidden="true">pt</span>
+              </label>
             </div>
             <input
               id="size"
@@ -103,9 +110,9 @@ Bathys grew out of the lettering used for Corinne Bailey Rae’s name on *The Se
           </div>
           <div class="range-control">
             <div class="control-caption">
-              <label for="width">Width</label
-              ><label class="control-value"
-                ><input
+              <label for="width">Width</label>
+              <label class="control-value">
+                <input
                   id="widthValue"
                   type="number"
                   value="100"
@@ -113,8 +120,9 @@ Bathys grew out of the lettering used for Corinne Bailey Rae’s name on *The Se
                   min="85"
                   max="115"
                   aria-label="Width in %"
-                /><span aria-hidden="true">%</span></label
-              >
+                />
+                <span aria-hidden="true">%</span>
+              </label>
             </div>
             <input
               id="width"
@@ -127,16 +135,17 @@ Bathys grew out of the lettering used for Corinne Bailey Rae’s name on *The Se
           </div>
           <div class="range-control">
             <div class="control-caption">
-              <label for="tracking">Tracking</label
-              ><label class="control-value"
-                ><input
+              <label for="tracking">Tracking</label>
+              <label class="control-value">
+                <input
                   id="trackingValue"
                   type="number"
                   value="0"
                   step="any"
                   aria-label="Tracking in px"
-                /><span aria-hidden="true">px</span></label
-              >
+                />
+                <span aria-hidden="true">px</span>
+              </label>
             </div>
             <input
               id="tracking"
@@ -148,9 +157,9 @@ Bathys grew out of the lettering used for Corinne Bailey Rae’s name on *The Se
             />
           </div>
           <div class="switches">
-            <label><input id="liga" type="checkbox" checked />Ligatures</label
-            ><label><input id="dlig" type="checkbox" />Optional</label
-            ><label><input id="smallcaps" type="checkbox" />Small caps</label>
+            <label><input id="liga" type="checkbox" checked /> Ligatures</label>
+            <label><input id="dlig" type="checkbox" /> Optional</label>
+            <label><input id="smallcaps" type="checkbox" /> Small caps</label>
           </div>
           <button id="reset" class="text-button" type="button">
             Reset settings
@@ -162,16 +171,14 @@ Bathys grew out of the lettering used for Corinne Bailey Rae’s name on *The Se
           aria-label="Write in Bathys"
           spellcheck="false"
           rows="1"
-        >
-SPHINX OF BLACK QUARTZ, JUDGE MY VOW.</textarea
-        >
+        >SPHINX OF BLACK QUARTZ, JUDGE MY VOW.</textarea>
 
-        <noscript
-          ><p>
+        <noscript>
+          <p>
             The samples and downloads work without JavaScript. Enable JavaScript
             to use the controls.
-          </p></noscript
-        >
+          </p>
+        </noscript>
       </section>
 
       <section
@@ -222,8 +229,9 @@ SPHINX OF BLACK QUARTZ, JUDGE MY VOW.</textarea
           <h3 id="inspector-title">Inspect a character</h3>
           <div class="inspection">
             <div class="inspection-tools">
-              <label for="glyph"
-                >Character<input
+              <label for="glyph">
+                Character
+                <input
                   id="glyph"
                   class="glyph-entry font"
                   type="text"
@@ -231,20 +239,22 @@ SPHINX OF BLACK QUARTZ, JUDGE MY VOW.</textarea
                   maxlength="1"
                   spellcheck="false"
                   autocapitalize="characters"
-              /></label>
+                />
+              </label>
               <div class="range-control">
                 <div class="control-caption">
-                  <label for="glyphSize">Size</label
-                  ><label class="control-value"
-                    ><input
+                  <label for="glyphSize">Size</label>
+                  <label class="control-value">
+                    <input
                       id="glyphSizeValue"
                       type="number"
                       value="255"
                       step="any"
                       min="1"
                       aria-label="Size in pt"
-                    /><span aria-hidden="true">pt</span></label
-                  >
+                    />
+                    <span aria-hidden="true">pt</span>
+                  </label>
                 </div>
                 <input
                   id="glyphSize"
@@ -283,30 +293,77 @@ SPHINX OF BLACK QUARTZ, JUDGE MY VOW.</textarea
       </section>
 
       <section id="reference" class="section" aria-labelledby="reference-title">
-        <div class="section-head"><h2 id="reference-title">Reference</h2></div>
-        <p class="writing-placeholder">
-        The lettering on these covers provided Bathys’s first ten capitals: A, B, C, E, I, L, N, O, R, and Y. The spiral S and raised crossbar take cues from the smaller title on *The Sea*. Artwork and design for *The Sea* are credited to Alex Cowper; *The Love EP* credits Randall Leddy for design and Gordon H. Jee for creative direction.
+        <div class="section-head">
+          <h2 id="reference-title">Reference</h2>
+        </div>
+        <p class="prose">
+          The artist’s name appears in ten distinct capital forms across both
+          covers: A, B, C, E, I, L, N, O, R, and Y. The spiral S and raised
+          crossbar come from the smaller title lettering on
+          <cite>The Sea</cite>.
         </p>
         <div class="covers">
           <figure>
-            <img
-              src="assets/sea.jpg"
-              alt="Corinne Bailey Rae, The Sea"
-              loading="lazy"
-              width="1360"
-              height="1360"
-            />
-            <figcaption>The Sea · 2010</figcaption>
+            <a
+              class="cover-image-link"
+              href="https://en.wikipedia.org/wiki/The_Sea_(Corinne_Bailey_Rae_album)"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View The Sea on Wikipedia"
+            >
+              <img
+                src="assets/sea.jpg"
+                alt="Cover of Corinne Bailey Rae’s The Sea, with geometric lettering for the artist’s name"
+                loading="lazy"
+                width="1360"
+                height="1360"
+              />
+            </a>
+            <figcaption>
+              <a
+                class="cover-caption-title"
+                href="https://en.wikipedia.org/wiki/The_Sea_(Corinne_Bailey_Rae_album)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <cite>The Sea</cite>
+                <span class="cover-year">2010</span>
+              </a>
+              <span class="cover-caption-credit">
+                Artwork and design: Alex Cowper
+              </span>
+            </figcaption>
           </figure>
           <figure>
-            <img
-              src="assets/LoveEP.jpg"
-              alt="Corinne Bailey Rae, The Love EP"
-              loading="lazy"
-              width="1000"
-              height="1000"
-            />
-            <figcaption>The Love EP · 2011</figcaption>
+            <a
+              class="cover-image-link"
+              href="https://en.wikipedia.org/wiki/The_Love_EP_(Corinne_Bailey_Rae_EP)"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View The Love EP on Wikipedia"
+            >
+              <img
+                src="assets/LoveEP.jpg"
+                alt="Cover of Corinne Bailey Rae’s The Love EP, with geometric lettering for the artist’s name"
+                loading="lazy"
+                width="1500"
+                height="1500"
+              />
+            </a>
+            <figcaption>
+              <a
+                class="cover-caption-title"
+                href="https://en.wikipedia.org/wiki/The_Love_EP_(Corinne_Bailey_Rae_EP)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <cite>The Love EP</cite>
+                <span class="cover-year">2011</span>
+              </a>
+              <span class="cover-caption-credit">
+                Design: Randall Leddy · Creative direction: Gordon H. Jee
+              </span>
+            </figcaption>
           </figure>
         </div>
       </section>
@@ -321,22 +378,30 @@ SPHINX OF BLACK QUARTZ, JUDGE MY VOW.</textarea
           <p>OpenType fonts and webfonts. Width range 85–115.</p>
         </div>
         <div class="downloads">
-          <a href="fonts/Bathys-Regular.otf" download
-            >Regular OTF<span>Desktop</span></a
-          ><a href="fonts/Bathys-Variable.otf" download
-            >Variable OTF<span>Desktop · Width axis</span></a
-          ><a href="fonts/Bathys-Regular.woff2" download
-            >Regular WOFF2<span>Web</span></a
-          ><a href="fonts/Bathys-Variable.woff2" download
-            >Variable WOFF2<span>Web · Width axis</span></a
-          >
+          <a href="fonts/Bathys-Regular.otf" download>
+            Regular OTF<span>Desktop</span>
+          </a>
+          <a href="fonts/Bathys-Variable.otf" download>
+            Variable OTF<span>Desktop · Width axis</span>
+          </a>
+          <a href="fonts/Bathys-Regular.woff2" download>
+            Regular WOFF2<span>Web</span>
+          </a>
+          <a href="fonts/Bathys-Variable.woff2" download>
+            Variable WOFF2<span>Web · Width axis</span>
+          </a>
         </div>
       </section>
     </main>
     <footer class="wrap site-footer">
-      <span>Bathys <span id="version">1.0</span></span
-      ><a href="OFL.txt">SIL Open Font License 1.1</a
-      ><a href="#top">Back to top</a>
+      <p>
+        © 2026 Visruth Srimath Kandali. Bathys is licensed under the
+        <a href="OFL.txt">SIL Open Font License 1.1</a>.
+      </p>
+      <div>
+        <span>Bathys <span id="version">1.0</span></span>
+        <a href="#top">Back to top</a>
+      </div>
     </footer>
   </body>
 </html>

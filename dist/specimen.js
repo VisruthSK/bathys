@@ -100,6 +100,7 @@ byId("glyph").addEventListener("input", updateGlyph);
 byId("theme").addEventListener("click", () => {
   const dark = document.body.classList.toggle("dark");
   byId("theme").setAttribute("aria-pressed", String(dark));
+  byId("theme").textContent = dark ? "Light paper" : "Dark paper";
 });
 byId("reset").addEventListener("click", () => {
   for (const id of ["size", "width", "tracking"]) controls[id].reset();
