@@ -22,6 +22,12 @@ from outlines import (
 )
 
 ROOT = Path(__file__).resolve().parent.parent
+# Keep these values synchronized with the public license and binary metadata.
+FONT_VERSION = "1.0"
+FONT_COPYRIGHT = (
+    "Copyright (c) 2026 Visruth Srimath Kandali (https://www.visruth.com).\n"
+    'Reserved Font Name "Bathys".'
+)
 OUT = ROOT / "dist/fonts"
 GENERATED = ROOT / "extract/generated"
 
@@ -105,8 +111,8 @@ def build():
             "FullName": "Bathys Regular",
             "FamilyName": "Bathys",
             "Weight": "Regular",
-            "version": "1.000",
-            "Notice": "Copyright (c) 2026 Visruth Srimath Kandali",
+            "version": FONT_VERSION,
+            "Notice": FONT_COPYRIGHT,
         },
         cs,
         {"BlueValues": [-12, 0, 700, 712], "StdHW": 66, "StdVW": 66},
@@ -117,13 +123,13 @@ def build():
     fb.setupHorizontalHeader(ascent=820, descent=-180, lineGap=80)
     fb.setupNameTable(
         {
-            "copyright": "Copyright (c) 2026 Visruth Srimath Kandali",
+            "copyright": FONT_COPYRIGHT,
             "familyName": "Bathys",
             "styleName": "Regular",
-            "uniqueFontIdentifier": "Bathys-Regular-1.000",
+            "uniqueFontIdentifier": f"Bathys-Regular-{FONT_VERSION}",
             "fullName": "Bathys Regular",
             "psName": "Bathys-Regular",
-            "version": "Version 1.000",
+            "version": f"Version {FONT_VERSION}",
             "licenseDescription": (ROOT / "dist/OFL.txt").read_text(encoding="utf-8"),
             "licenseInfoURL": "https://openfontlicense.org/open-font-license-official-text/",
             "description": "Circular display capitals, open-throated R, returning N, interlocks and a spiral S.",
@@ -328,7 +334,7 @@ def build():
     feature_text = "\n".join(fea)
     (GENERATED / "Bathys.fea").write_text(feature_text)
     addOpenTypeFeaturesFromString(fb.font, feature_text)
-    fb.font["head"].fontRevision = 1.000
+    fb.font["head"].fontRevision = 1.0
     fb.font["head"].created = fb.font["head"].modified = (
         int(datetime(2026, 11, 9, tzinfo=UTC).timestamp()) + 2082844800
     )

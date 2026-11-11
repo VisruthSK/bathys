@@ -51,20 +51,16 @@ def check_browser(engine, name):
         "document.querySelector('.smallcap-row').nextElementSibling.classList.contains('character-inspector')"
     )
     assert page.locator("#reset").evaluate("e => e.closest('.controls') !== null")
-    assert (
-        page.locator(".about-writing .writing-placeholder").evaluate(
-            "e => getComputedStyle(e).borderBottomStyle"
-        )
-        == "solid"
-    )
+    assert page.locator(".intro > .prose").count() == 1
+    assert page.locator(".intro cite").count() == 2
+    assert page.locator("#reference > .prose").count() == 1
     assert "Bathys" in page.locator(".site-title").evaluate(
         "e => getComputedStyle(e).fontFamily"
     )
     assert page.locator("#reference img").count() == 2
-    assert page.locator(".writing-placeholder").all_text_contents() == [
-        "TODO: WRITE",
-        "TODO: WRITE",
-    ]
+    assert page.locator(".writing-placeholder").count() == 0
+    assert page.locator(".cover-image-link").count() == 2
+    assert page.locator("#reference .cover-caption-credit").count() == 2
     assert page.locator("#pairs small").all_text_contents() == list(LIGS)
     assert page.locator("#optionalPairs small").all_text_contents() == list(DLIGS)
     sample_copy = page.locator("#samples").inner_text().upper()
@@ -171,7 +167,7 @@ def check_browser(engine, name):
                 .evaluate("e => getComputedStyle(e).gridTemplateColumns")
                 .split()
             )
-            == 2
+            == 1
         )
         page.locator("#glyphSizeValue").fill("255")
         page.locator("#glyph").fill("S")

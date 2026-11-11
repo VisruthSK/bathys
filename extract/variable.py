@@ -15,6 +15,7 @@ from fontTools.varLib import build
 
 
 def variable_font(static, output):
+    version = static["name"].getDebugName(5).removeprefix("Version ")
     source_bytes = BytesIO()
     static.save(source_bytes)
     design = DesignSpaceDocument()
@@ -68,13 +69,15 @@ def variable_font(static, output):
                 caret.Coordinate = round(caret.Coordinate * factor)
         for name_id, value in [
             (1, "Bathys Variable"),
-            (3, "BathysVariable-1.000"),
+            (3, f"BathysVariable-{version}"),
             (4, "Bathys Variable"),
             (6, "BathysVariable-Regular"),
             (16, "Bathys Variable"),
             (17, "Regular"),
         ]:
+            # Keep Windows and legacy macOS font menus in agreement.
             master["name"].setName(value, name_id, 3, 1, 0x409)
+            master["name"].setName(value, name_id, 1, 0, 0)
         top.FamilyName = "Bathys Variable"
         top.FullName = "Bathys Variable"
         source = SourceDescriptor()

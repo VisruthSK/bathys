@@ -26,9 +26,30 @@ class FontProof(unittest.TestCase):
         ]:
             font = TTFont(ROOT / "dist/fonts" / filename)
             self.assertEqual(font["head"].fontRevision, 1.0)
-            self.assertEqual(font["name"].getDebugName(5), "Version 1.000")
+            self.assertEqual(font["name"].getDebugName(5), "Version 1.0")
+            self.assertIn(
+                'Reserved Font Name "Bathys".',
+                font["name"].getDebugName(0),
+            )
             self.assertEqual(font["name"].getDebugName(13), license_text)
             self.assertIn("Visruth Srimath Kandali", font["name"].getDebugName(0))
+            if "Variable" in filename:
+                for name_id, expected in [
+                    (1, "Bathys Variable"),
+                    (3, "BathysVariable-1.0"),
+                    (4, "Bathys Variable"),
+                    (6, "BathysVariable-Regular"),
+                ]:
+                    for platform, encoding, language in [
+                        (1, 0, 0),
+                        (3, 1, 0x409),
+                    ]:
+                        self.assertEqual(
+                            font["name"]
+                            .getName(name_id, platform, encoding, language)
+                            .toUnicode(),
+                            expected,
+                        )
             self.assertEqual(
                 font["name"].getDebugName(14),
                 "https://openfontlicense.org/open-font-license-official-text/",

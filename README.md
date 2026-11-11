@@ -1,12 +1,12 @@
 # Bathys
 
-A art-deco display typeface heavily inspired by Corinne Bailey Rae's face from _The Sea_ and _The Love EP_.
+Bathys is a retro-futurist geometric display typeface based on the artist-name lettering on Corinne Bailey Rae’s _The Sea_ and _The Love EP_. It is intended for titles and short lines of text.
 
 [Specimen](dist/index.html) · [Regular OTF](dist/fonts/Bathys-Regular.otf) · [Variable OTF](dist/fonts/Bathys-Variable.otf)
 
 ## Font
 
-The variable font has a width axis from 85 to 115, with the reference width at 100. Standard ligatures and contextual forms compose automatically; denser interlocks are optional. Lowercase input displays as capitals unless small caps are enabled.
+The variable font has a width axis from 85 to 115, with the reference width at 100. Standard ligatures and contextual forms compose automatically; denser interlocks are optional. Lowercase input displays as capitals unless small caps are enabled. The character set covers basic Latin letters, digits, and selected punctuation, but does not include accented Latin characters or many symbols.
 
 ```css
 @font-face {
@@ -24,7 +24,7 @@ The variable font has a width axis from 85 to 115, with the reference width at 1
 }
 ```
 
-The fonts use the [SIL Open Font License 1.1](dist/OFL.txt). Copyright and the full license are embedded in all four font files. 
+The fonts use the [SIL Open Font License 1.1](dist/OFL.txt), with **Bathys** as a Reserved Font Name. Copyright and the full license are embedded in all four font files. 
 
 Reference album artwork is not covered by this font license.
 
