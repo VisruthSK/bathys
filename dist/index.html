@@ -110,31 +110,6 @@
           </div>
           <div class="range-control">
             <div class="control-caption">
-              <label for="width">Width</label>
-              <label class="control-value">
-                <input
-                  id="widthValue"
-                  type="number"
-                  value="100"
-                  step="any"
-                  min="85"
-                  max="115"
-                  aria-label="Width in %"
-                />
-                <span aria-hidden="true">%</span>
-              </label>
-            </div>
-            <input
-              id="width"
-              type="range"
-              min="85"
-              max="115"
-              value="100"
-              step="any"
-            />
-          </div>
-          <div class="range-control">
-            <div class="control-caption">
               <label for="tracking">Tracking</label>
               <label class="control-value">
                 <input
@@ -195,20 +170,6 @@
         <p class="font sample-sm">LOVE IN SLOW MOTION</p>
         <p class="font sample-sm sc">THURSDAY THROUGH SUNDAY</p>
         <p class="font specimen-feature">FEVER<br />EVERYWHERE</p>
-        <div class="width-comparison" aria-label="Variable width comparison">
-          <div>
-            <span class="caption">Narrow / 85</span>
-            <p class="font width-narrow">QUARTZ</p>
-          </div>
-          <div>
-            <span class="caption">Regular / 100</span>
-            <p class="font">QUARTZ</p>
-          </div>
-          <div>
-            <span class="caption">Wide / 115</span>
-            <p class="font width-wide">QUARTZ</p>
-          </div>
-        </div>
       </section>
 
       <section id="alphabet" class="section" aria-labelledby="alphabet-title">
@@ -223,7 +184,10 @@
         </div>
         <div class="smallcap-row">
           <span class="caption">Small capitals</span>
-          <p class="font sc">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+          <p class="font sc">
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ<br />
+            <span class="numerals">0123456789</span>
+          </p>
         </div>
         <div class="character-inspector" aria-labelledby="inspector-title">
           <h3 id="inspector-title">Inspect a character</h3>
@@ -277,6 +241,7 @@
       <section id="joins" class="section" aria-labelledby="joins-title">
         <div class="section-head">
           <h2 id="joins-title">Ligatures</h2>
+          <p>Unjoined above, joined below.</p>
         </div>
         <div id="featuredPairs" class="pair-grid featured-pairs"></div>
         <details>
@@ -284,7 +249,7 @@
           <div id="pairs" class="pair-grid"></div>
         </details>
         <details class="optional-joins">
-          <summary>Additional ligatures</summary>
+          <summary>Optional ligatures <span id="optionalCount"></span></summary>
           <div id="optionalPairs" class="pair-grid"></div>
         </details>
         <p class="font joining-words">
@@ -394,8 +359,9 @@
       </section>
     </main>
     <footer class="wrap site-footer">
-      <p>
-        © 2026 Visruth Srimath Kandali. Bathys is licensed under the
+      <p>© 2026 Visruth Srimath Kandali.</p>
+      <p class="license">
+        Bathys is licensed under the
         <a href="OFL.txt">SIL Open Font License 1.1</a>.
       </p>
       <div>

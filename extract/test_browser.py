@@ -4,8 +4,6 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-from outlines import DLIGS, LIGS
-
 ROOT = Path(__file__).resolve().parent.parent
 PANGRAM = "SPHINX OF BLACK QUARTZ, JUDGE MY VOW."
 MEASURE = """() => {
@@ -14,7 +12,7 @@ MEASURE = """() => {
   const probe = document.createElement('span');
   probe.textContent = editor.value;
   for (const property of ['fontFamily', 'fontSize', 'fontFeatureSettings',
-    'fontVariationSettings', 'fontStretch', 'letterSpacing']) probe.style[property] = style[property];
+    'fontVariationSettings', 'fontStretch', 'letterSpacing', 'textTransform']) probe.style[property] = style[property];
   probe.style.whiteSpace = 'pre'; probe.style.position = 'fixed'; probe.style.left = '-10000px';
   document.body.append(probe);
   const width = probe.getBoundingClientRect().width;
@@ -27,18 +25,19 @@ def font_size(locator):
     return locator.evaluate("e => parseFloat(getComputedStyle(e).fontSize)")
 
 
-def check_browser(engine, name):
+def check_browser(engine, name, base_url="http://127.0.0.1:8765/"):
     browser = engine.launch(headless=True)
     page = browser.new_page(viewport={"width": 1440, "height": 1000})
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
     page.add_init_script("""window.policyViolations = [];
       document.addEventListener('securitypolicyviolation', e => policyViolations.push(e.violatedDirective));""")
-    assert page.goto("http://127.0.0.1:8765/").status == 200
+    assert page.goto(base_url).status == 200
     page.evaluate("document.fonts.ready")
     editor = page.locator("#type")
     assert editor.input_value() == PANGRAM
     assert page.locator("#sizeValue").input_value() == "64"
+    assert page.locator("#width, #widthValue, .width-comparison").count() == 0
     assert abs(font_size(editor) - 64 * 4 / 3) < 0.1
     assert (
         page.locator(
@@ -61,8 +60,25 @@ def check_browser(engine, name):
     assert page.locator(".writing-placeholder").count() == 0
     assert page.locator(".cover-image-link").count() == 2
     assert page.locator("#reference .cover-caption-credit").count() == 2
-    assert page.locator("#pairs small").all_text_contents() == list(LIGS)
-    assert page.locator("#optionalPairs small").all_text_contents() == list(DLIGS)
+    catalogue = page.evaluate("BATHYS_SPECIMEN")
+    assert page.locator("#pairs small").all_text_contents() == catalogue["standard"]
+    assert (
+        page.locator("#optionalPairs small").all_text_contents()
+        == catalogue["optional"]
+    )
+    assert (
+        page.locator("#optionalCount").inner_text() == f"({len(catalogue['optional'])})"
+    )
+    assert "Optional ligatures" in page.locator(".optional-joins summary").inner_text()
+    assert "0123456789" in page.locator(".smallcap-row .font").inner_text()
+    assert page.locator("#featuredPairs .separate").all_text_contents() == [
+        "BA",
+        "AE",
+        "EY",
+        "TH",
+        "WT",
+        "AR",
+    ]
     sample_copy = page.locator("#samples").inner_text().upper()
     assert (
         "THE SEA" not in sample_copy
@@ -103,10 +119,17 @@ def check_browser(engine, name):
         )
         chain = page.evaluate(MEASURE)
         editor.evaluate(
-            'e => e.style.fontFeatureSettings = \'"liga" 1, "calt" 0, "kern" 1\''
+            'e => e.style.fontFeatureSettings = \'"liga" 0, "calt" 0, "kern" 1\''
         )
         assert chain < page.evaluate(MEASURE) - 1
     editor.evaluate("e => e.style.removeProperty('font-feature-settings')")
+    for word in ["MILLION", "million", "Million"]:
+        editor.fill(word)
+        page.locator("#liga").check()
+        joined_width = page.evaluate(MEASURE)
+        page.locator("#liga").uncheck()
+        assert abs(joined_width - page.evaluate(MEASURE)) < 0.1
+    page.locator("#liga").check()
     editor.fill(PANGRAM)
     page.locator("#sizeValue").fill("240")
     assert abs(font_size(editor) - 320) < 0.1
@@ -116,10 +139,6 @@ def check_browser(engine, name):
     assert page.locator("#size").get_attribute("max") == "150"
     page.locator("#sizeValue").fill("64.5")
     assert abs(font_size(editor) - 86) < 0.1
-    page.locator("#widthValue").fill("105.25")
-    assert "105.25" in editor.evaluate("e => getComputedStyle(e).fontVariationSettings")
-    page.locator("#width").dblclick()
-    assert page.locator("#widthValue").input_value() == "100"
     page.locator("#trackingValue").fill("-3.5")
     assert editor.evaluate("e => getComputedStyle(e).letterSpacing") == "-3.5px"
     page.locator("#tracking").dblclick()
@@ -175,6 +194,15 @@ def check_browser(engine, name):
             "items => items.forEach(item => item.open = false)"
         )
     assert not errors, errors
+    mobile = browser.new_page(viewport={"width": 390, "height": 844})
+    mobile.goto(base_url)
+    mobile.evaluate("document.fonts.ready")
+    assert mobile.locator("#sizeValue").input_value() == "40"
+    assert abs(font_size(mobile.locator("#type")) - 40 * 4 / 3) < 0.1
+    mobile.locator("#sizeValue").fill("80")
+    mobile.locator("#size").dblclick()
+    assert mobile.locator("#sizeValue").input_value() == "40"
+    mobile.close()
     assert page.evaluate("window.policyViolations") == [], page.evaluate(
         "window.policyViolations"
     )

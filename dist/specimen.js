@@ -4,6 +4,7 @@ const byId = (id) => document.getElementById(id);
 const data = BATHYS_SPECIMEN;
 const editor = byId("type");
 const tester = document.querySelector(".tester");
+const initialSize = matchMedia("(max-width: 650px)").matches ? 40 : 64;
 
 function bindControl(id, defaultValue, render) {
   const slider = byId(id);
@@ -57,8 +58,7 @@ function bindControl(id, defaultValue, render) {
 }
 
 const controls = {
-  size: bindControl("size", 64, update),
-  width: bindControl("width", 100, update),
+  size: bindControl("size", initialSize, update),
   tracking: bindControl("tracking", 0, update),
   glyphSize: bindControl("glyphSize", 255, updateGlyph),
 };
@@ -72,7 +72,6 @@ function update() {
   const small = byId("smallcaps").checked;
   const joins = byId("liga").checked;
   tester.style.setProperty("--type-size", `${controls.size.value}pt`);
-  tester.style.setProperty("--width", controls.width.value);
   tester.style.setProperty("--tracking", `${controls.tracking.value}px`);
   tester.style.setProperty(
     "--features",
@@ -103,7 +102,7 @@ byId("theme").addEventListener("click", () => {
   byId("theme").textContent = dark ? "Light paper" : "Dark paper";
 });
 byId("reset").addEventListener("click", () => {
-  for (const id of ["size", "width", "tracking"]) controls[id].reset();
+  for (const id of ["size", "tracking"]) controls[id].reset();
   byId("liga").checked = true;
   byId("dlig").checked = false;
   byId("smallcaps").checked = false;
@@ -117,21 +116,27 @@ function node(tag, className, text) {
   return element;
 }
 
-function showLigatures(catalogue, target, optional) {
+function showLigatures(catalogue, target, optional, compare = false) {
   for (const word of catalogue) {
     const card = node("div", "pair", "");
-    card.append(
-      node("small", "", word),
-      node("span", optional ? "font joined optional" : "font joined", word),
-    );
+    card.append(node("small", "", word));
+    if (compare) {
+      const separate = node("span", "font separate", word);
+      separate.setAttribute("aria-label", `Unjoined ${word}`);
+      card.append(separate);
+    }
+    const joined = node("span", optional ? "font joined optional" : "font joined", word);
+    joined.setAttribute("aria-label", `Joined ${word}`);
+    card.append(joined);
     byId(target).append(card);
   }
 }
 
 showLigatures(data.standard, "pairs", false);
-showLigatures(["BA", "NN", "EY", "TH", "WT", "EA"], "featuredPairs", false);
+showLigatures(["BA", "AE", "EY", "TH", "WT", "AR"], "featuredPairs", false, true);
 showLigatures(data.optional, "optionalPairs", true);
 byId("standardCount").textContent = `(${data.standard.length})`;
+byId("optionalCount").textContent = `(${data.optional.length})`;
 byId("version").textContent = data.version;
 update();
 updateGlyph();
