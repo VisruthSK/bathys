@@ -83,7 +83,7 @@ def audit():
                         outlines[names[0]], placed, pathops.PathOp.INTERSECTION
                     ).area
                 )
-                if area > 0.01 and left + right != "EY":
+                if area > 0.01:
                     target[left + right] = round(area, 3)
     result = {
         "glyphs": len(order),

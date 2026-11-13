@@ -15,6 +15,10 @@ const BATHYS_SPECIMEN = {
     "WT",
     "EA",
     "HY",
+    "FA",
+    "TT",
+    "HA",
+    "MA",
     "LA",
     "AT",
     "ET",
@@ -28,9 +32,7 @@ const BATHYS_SPECIMEN = {
     "FV",
     "FW",
     "HV",
-    "HW",
-    "AV",
-    "AW"
+    "HW"
   ],
   "optional": [
     "CO",
@@ -43,6 +45,10 @@ const BATHYS_SPECIMEN = {
     "NE",
     "COO",
     "NY",
-    "LY"
+    "CC",
+    "GO",
+    "COG",
+    "AK",
+    "AF"
   ]
 };

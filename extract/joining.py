@@ -1,7 +1,7 @@
 """Contextual joins for connected runs, without word-specific ligatures."""
 
 
-def chain_feature_code(pairs):
+def chain_feature_code(pairs, prefix=""):
     classes = []
     mark = []
     extend = []
@@ -13,8 +13,8 @@ def chain_feature_code(pairs):
             rights = sorted({pair[1] for pair in pairs if pair[0] == middle})
             if not lefts or not rights:
                 continue
-            left_class = f"@ChainLeft_{middle}{tag}"
-            right_class = f"@ChainRight_{middle}{tag}"
+            left_class = f"@{prefix}ChainLeft_{middle}{tag}"
+            right_class = f"@{prefix}ChainRight_{middle}{tag}"
             classes.append(
                 f"{left_class} = ["
                 + " ".join(f"{c}{suffix} {c}.chain{suffix}" for c in lefts)
@@ -44,5 +44,5 @@ def chain_feature_code(pairs):
         ("ExtendChains", extend),
         ("ResolveChains", resolve),
     ]:
-        rules.extend([f"lookup {name} {{", *statements, f"}} {name};"])
+        rules.extend([f"lookup {prefix}{name} {{", *statements, f"}} {prefix}{name};"])
     return classes, rules

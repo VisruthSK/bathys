@@ -5,6 +5,7 @@ import math
 from pathlib import Path
 
 import pathops
+from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.svgLib.path import parse_path
 
@@ -272,7 +273,8 @@ def alphabet(t=66):
         "X",
         union(
             poly([(20, 700), (100, 700), (590, 0), (510, 0)]),
-            poly([(510, 700), (590, 700), (100, 0), (20, 0)]),
+            # The 178-unit cap return echoes V/W; the diagonal below stays intact.
+            poly([(412, 700), (590, 700), (100, 0), (20, 0), (463.8, 634), (412, 634)]),
         ),
         610,
     )
@@ -443,11 +445,11 @@ for name, p, w in [
         poly([(35, 68), (106, 68), (100, 0), (49, -110), (16, -110), (44, 0), (35, 0)]),
         140,
     ),
-    ("colon", union(ellipse(65, 32, 34, 34), ellipse(65, 443, 34, 34)), 130),
+    ("colon", union(ellipse(65, 230, 34, 34), ellipse(65, 470, 34, 34)), 130),
     (
         "semicolon",
         union(
-            ellipse(65, 443, 34, 34),
+            ellipse(65, 470, 34, 34),
             poly([(35, 68), (106, 68), (100, 0), (49, -110), (16, -110), (44, 0)]),
         ),
         140,
@@ -494,6 +496,9 @@ for name, target in [
 ]:
     add(name, *GLYPHS[target])
 
+# The slash follows the small-cap line and compensated stroke of the letters.
+add("slash.sc", smallcap(GLYPHS["slash"][0]), GLYPHS["slash"][1] * 0.74 + 10)
+
 # Interlocking positions are drawn compositions, with their intersections united.
 LIGS = {
     "BA": ([0, 180], 816),
@@ -510,6 +515,10 @@ LIGS = {
     "WT": ([0, 690], 1278),
     "EA": ([0, 365], 1001),
     "HY": ([0, 547], 1117),
+    "FA": ([0, 120], 756),
+    "TT": ([0, 482], 1070),
+    "HA": ([0, 480], 1116),
+    "MA": ([0, 548], 1184),
 }
 DLIGS = {
     "CO": ([0, 355], 1080),
@@ -530,42 +539,98 @@ DLIGS = {
     "FT": ([0, 420], 1008),
     "AY": ([0, 515], 1085),
     "NY": ([0, 538], 1108),
-    "LY": ([0, 90], 660),
+    "CC": ([0, 440], 1147),
+    "GO": ([0, 680], 1428),
+    "COG": ([0, 355, 875], 1623),
+    "AK": ([0, 469], 1059),
+    "AF": ([0, 469], 944),
 }
 # Clear cap-bar and foot joins are normal; dense monograms remain optional.
 for clear_join in ("LA", "AT", "ET", "FT", "AY", "RA", "AR", "AE"):
     LIGS[clear_join] = DLIGS.pop(clear_join)
 
-# Cap arms meet a diagonal entry using the same bridge as EY. A retains its
-# exact contours and shares its upright's cap with V/W without a bridge.
+# Cap arms meet a diagonal entry using the same bridge as EY.
 for left in "EFH":
     offset = round(GLYPHS[left][0].bounds[2] - 33)
     for right in "VW":
         LIGS[left + right] = ([0, offset], offset + GLYPHS[right][1])
-for right in "VW":
-    LIGS["A" + right] = ([0, 488], 488 + GLYPHS[right][1])
 
 # The ligature catalogue is the single source for every contextual connection.
 JOIN_PAIRS = {pair: positions[1] for pair, (positions, _) in LIGS.items()}
+ALL_JOIN_PAIRS = JOIN_PAIRS | {
+    pair: positions[1] for pair, (positions, _) in DLIGS.items() if len(pair) == 2
+}
 TOP_JOINS = {
     pair: rect(GLYPHS[pair[0]][0].bounds[2] - 12, 634, 38, 66)
     for pair in LIGS
     if pair[0] in "EFH" and pair[1] in "VWY"
 }
+TOP_JOINS["FA"] = rect(380, 326, 54, 66)
 
 SC_NN_GAP = 9
+
+
+def shared_a_foot(outline, left, right, scale):
+    """Keep A polygonal; tuck its two toe vertices inside the shared stem."""
+    source = RecordingPen()
+    outline.draw(source)
+    toes = [
+        x for _, points in source.value for x, y in points if y == 0 and x < 300 * scale
+    ]
+    assert len(toes) == 2
+    old_left, old_right = sorted(toes)
+    result = pathops.Path()
+    target = result.getPen()
+    for command, points in source.value:
+        assert command in {"moveTo", "lineTo", "closePath"}, (
+            "A must stay straight-sided"
+        )
+        if command == "lineTo" and any(
+            0 < y < 12 * scale and x < left for x, y in points
+        ):
+            continue  # Remove the old small-cap toe bevel, not the diagonal.
+        adjusted = []
+        for x, y in points:
+            if y == 0 and x == old_left:
+                x = left
+            elif y == 0 and x == old_right:
+                x = right - round(4 * scale)
+            adjusted.append((x, y))
+        getattr(target, command)(*adjusted)
+    return result
+
+
+# H/M component origins put their stems at A-local x=34..100. Compiled
+# small-cap origins put both stems at x=21..79, including integer advances.
+for suffix, scale, left, right, height, flat in [
+    ("", 1, 34, 100, 64, 4),
+    (".sc", 0.74, 21, 79, 48, 3),
+]:
+    foot = shared_a_foot(GLYPHS["A" + suffix][0], left, right, scale)
+    add("A.foot" + suffix, foot, GLYPHS["A" + suffix][1])
+    # M/H owns the exposed foot in separate-glyph runs. A overlaps inside
+    # that stem, avoiding double-painted antialiasing along its outer edges.
+    owned = difference(foot, rect(-100, -20, right - 5 * scale + 100, height + 20))
+    owned = difference(owned, rect(-100, -20, 300 * scale + 100, flat + 20))
+    add("A.foot.owned" + suffix, owned, GLYPHS["A" + suffix][1])
+
+
 for seq, (positions, width) in (LIGS | DLIGS).items():
     for suffix, scale in [("", 1), (".sc", 0.74)]:
         gap = SC_NN_GAP if suffix and seq == "NN" else 0
-        parts = [
-            transform(
-                GLYPHS[("N.plain" if seq == "NN" and i == 0 else c) + suffix][0],
-                1,
-                (round(x * scale) if seq in {"BA", "VT", "WT"} else x * scale)
-                + (gap if i else 0),
+        parts = []
+        for index, (letter, x) in enumerate(zip(seq, positions, strict=True)):
+            name = "N.plain" if seq == "NN" and index == 0 else letter
+            origin = round(x * scale) if seq in {"BA", "VT", "WT"} else x * scale
+            if seq in {"HA", "MA"} and index == 1:
+                name = "A.foot"
+                origin = (
+                    round(width * scale + (10 if suffix else 0))
+                    - GLYPHS["A" + suffix][1]
+                )
+            parts.append(
+                transform(GLYPHS[name + suffix][0], 1, origin + (gap if index else 0))
             )
-            for i, (c, x) in enumerate(zip(seq, positions, strict=True))
-        ]
         if seq in {"BA", "VT", "WT"}:
             # Preserve the A or T coordinates: translate contours verbatim.
             # Consistent winding gives the same fill as a union, without
@@ -590,11 +655,11 @@ for seq, (positions, width) in (LIGS | DLIGS).items():
 # One glyph per character in connected runs. Advances encode each connection.
 JOIN_FORMS = {}
 for suffix in ["", ".sc"]:
-    for letter in sorted(set("".join(JOIN_PAIRS))):
+    for letter in sorted(set("".join(ALL_JOIN_PAIRS))):
         name = f"{letter}.chain{suffix}"
         add(name, *GLYPHS[letter + suffix])
         JOIN_FORMS[name] = {"base": letter, "target": None, "suffix": suffix}
-    for left, right in JOIN_PAIRS:
+    for left, right in ALL_JOIN_PAIRS:
         pair = left + right
         name = f"{left}.join_{right}{suffix}"
         source = "N.plain" if pair == "NN" else left
@@ -603,5 +668,17 @@ for suffix in ["", ".sc"]:
             bridge = TOP_JOINS[pair]
             outline = union(outline, smallcap(bridge) if suffix else bridge)
         advance = GLYPHS["_".join(pair) + suffix][1] - GLYPHS[right + suffix][1]
+        if pair not in JOIN_PAIRS:
+            # Optional compounds can have an optical end bearing (notably CO).
+            # A continuing run must use the drawn origin, not that end bearing.
+            advance = ALL_JOIN_PAIRS[pair] * (0.74 if suffix else 1)
         add(name, outline, advance)
         JOIN_FORMS[name] = {"base": left, "target": right, "suffix": suffix}
+
+FOOT_FORMS = {}
+for name, form in list(JOIN_FORMS.items()):
+    if form["base"] == "A":
+        variant = name.replace("A.", "A.foot.", 1)
+        add(variant, GLYPHS["A.foot.owned" + form["suffix"]][0], GLYPHS[name][1])
+        JOIN_FORMS[variant] = dict(form)
+        FOOT_FORMS[name] = variant

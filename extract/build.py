@@ -4,16 +4,18 @@ import argparse
 import json
 import unittest
 from datetime import UTC, datetime
+from itertools import pairwise
 from pathlib import Path
 
 from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
-
 from joining import chain_feature_code
 from outlines import (
+    ALL_JOIN_PAIRS,
     DLIGS,
+    FOOT_FORMS,
     GLYPHS,
     JOIN_FORMS,
     JOIN_PAIRS,
@@ -157,15 +159,24 @@ def build():
         fea.append(f"feature {tag} {{")
         for c in letters:
             fea.append(f"sub {c} by {c.upper()}.sc;")
+        fea.append("sub slash by slash.sc;")
         fea.append(f"}} {tag};")
-    classes, chain_rules = chain_feature_code(JOIN_PAIRS)
-    fea.extend(classes)
     # Normalize capitals aliases only after the small-cap substitutions.
-    fea.append("feature calt {")
+    fea.append("lookup CapitalAliases {")
     for c in "abcdefghijklmnopqrstuvwxyz":
         fea.append(f"sub {c} by {c.upper()};")
-    fea.extend(chain_rules)
-    fea.append("} calt;")
+    fea.append("} CapitalAliases;")
+    for tag in ["calt", "liga", "dlig"]:
+        fea.append(f"feature {tag} {{ lookup CapitalAliases; }} {tag};")
+    # Optional runs resolve before pair ligatures can consume their neighbours.
+    # The default pass still sees only the standard catalogue.
+    for tag, pairs, prefix in [
+        ("dlig", ALL_JOIN_PAIRS, "Optional"),
+        ("liga", JOIN_PAIRS, ""),
+    ]:
+        classes, chain_rules = chain_feature_code(pairs, prefix)
+        fea.extend(classes)
+        fea.extend([f"feature {tag} {{", *chain_rules, f"}} {tag};"])
     for tag, ligs in [("liga", LIGS), ("dlig", DLIGS)]:
         fea.append(f"feature {tag} {{")
         for seq in sorted(ligs, key=len, reverse=True):
@@ -176,11 +187,51 @@ def build():
                     if tag == "dlig"
                     else [[c + suffix for c in seq]]
                 )
+                if tag == "dlig" and len(seq) > 2:
+                    # Retain a drawn circular composition when it ends a run.
+                    # Longer runs keep their reusable outgoing forms instead.
+                    assert all(
+                        b - a == ALL_JOIN_PAIRS[left + right]
+                        for (left, right), (a, b) in zip(
+                            pairwise(seq), pairwise(ligs[seq][0]), strict=True
+                        )
+                    )
+                    variants.append(
+                        [
+                            f"{left}.join_{right}{suffix}"
+                            for left, right in pairwise(seq)
+                        ]
+                        + [f"{seq[-1]}.chain{suffix}"]
+                    )
                 for variant in variants:
                     fea.append(f"sub {' '.join(variant)} by {'_'.join(seq) + suffix};")
         fea.append(f"}} {tag};")
+    for suffix, label in [("", ""), (".sc", "SC")]:
+        originals = [
+            name for name in FOOT_FORMS if JOIN_FORMS[name]["suffix"] == suffix
+        ]
+        fea.append(f"@FootOriginal{label} = [{' '.join(originals)}];")
+        fea.append(
+            f"@FootClean{label} = [{' '.join(FOOT_FORMS[name] for name in originals)}];"
+        )
+    fea.extend(
+        [
+            "lookup MatchSharedFoot {",
+            "sub [H.join_A M.join_A] @FootOriginal' by @FootClean;",
+            "sub [H.join_A.sc M.join_A.sc] @FootOriginalSC' by @FootCleanSC;",
+            "} MatchSharedFoot;",
+            "feature liga { lookup MatchSharedFoot; } liga;",
+            "feature dlig { lookup MatchSharedFoot; } dlig;",
+        ]
+    )
     fea.append("feature zero { sub zero by zero.slash; } zero;")
     kerns = {
+        "GT": -56,
+        "TC": -64,
+        "KO": -70,
+        "RT": -24,
+        "LA": -12,
+        "KA": -12,
         "AV": -65,
         "AW": -48,
         "AY": -65,
@@ -197,7 +248,7 @@ def build():
         "OV": -90,
         "WO": -60,
         "OW": -60,
-        "FA": -275,
+        "FA": -300,
         "PA": -295,
         "LT": -225,
         "LY": -220,
@@ -267,22 +318,27 @@ def build():
         "CW": -25,
         "GW": -60,
         "AE": -60,
+        "EA": -24,
         "NN": -40,
         "IN": -40,
         "NE": -40,
         "RI": -6,
-        "IL": -45,
+        "IL": -42,
         "LE": -40,
-        "EY": -65,
+        "EY": -28,
     }
-    # Tighten upright terminals against stems and A's diagonal to a 44-unit
-    # bounding gap. Existing optical exceptions win; forms inherit the policy.
-    for left in "AHIMN":
+    # Give the sloping entry to A a little less surrounding white space.
+    for left in "BCDGJOPRTVWY":
+        kerns[left + "A"] -= 8
+    # Uprights use a 44-unit gap, with 36 around A. Existing optical
+    # exceptions win; contextual forms inherit the same outside spacing.
+    for left in "AHIMNU":
         for right in "ABDEFHIKLMNPRU":
             gap = (
                 GLYPHS[left][1] - GLYPHS[left][0].bounds[2] + GLYPHS[right][0].bounds[0]
             )
-            kerns.setdefault(left + right, round(44 - gap))
+            target = 36 if "A" in (left, right) else 44
+            kerns.setdefault(left + right, round(target - gap))
     fea.append("feature kern {")
     # Every ligature inherits the spacing of its outside letters.
     edges = {c: (c, c) for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
@@ -311,6 +367,11 @@ def build():
         ("N_N", "E", -40),
     ]:
         pairs[left, right] = value
+        if "_" in right:
+            sequence = right.split("_")
+            incoming = f"{sequence[0]}.join_{sequence[1]}"
+            if incoming in JOIN_FORMS:
+                pairs[left, incoming] = value
     for (left, right), value in sorted(pairs.items()):
         fea.extend(
             [
@@ -318,6 +379,17 @@ def build():
                 f"pos {left}.sc {right}.sc {round(value * 0.74)};",
             ]
         )
+        # Lowercase aliases keep the same spacing even with calt disabled.
+        left_aliases = (
+            [left, left.lower()] if len(left) == 1 and left.isupper() else [left]
+        )
+        right_aliases = (
+            [right, right.lower()] if len(right) == 1 and right.isupper() else [right]
+        )
+        for left_alias in left_aliases:
+            for right_alias in right_aliases:
+                if (left_alias, right_alias) != (left, right):
+                    fea.append(f"pos {left_alias} {right_alias} {value};")
     fea.append("} kern;")
     fea.append("table GDEF {")
     for sequence, (positions, _width) in (LIGS | DLIGS).items():

@@ -2,15 +2,16 @@
 
 import math
 import unittest
+from io import BytesIO
 from pathlib import Path
 
 import pathops
 import uharfbuzz as hb
 from fontTools.pens.boundsPen import BoundsPen
+from fontTools.pens.recordingPen import RecordingPen
 from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
-
-from outlines import DLIGS, JOIN_FORMS, JOIN_PAIRS, LIGS
+from outlines import ALL_JOIN_PAIRS, DLIGS, JOIN_FORMS, JOIN_PAIRS, LIGS
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -76,7 +77,8 @@ class FontProof(unittest.TestCase):
 
     def test_reference_word(self):
         self.assertEqual(
-            [n for n, w in self.shape("CORINNE", dlig=True)], ["C_O_R", "I", "N_N", "E"]
+            [n for n, w in self.shape("CORINNE", dlig=True)],
+            ["C_O_R", "I", "N.join_N", "N.join_E", "E.chain"],
         )
         self.assertEqual(
             [n for n, w in self.shape("CORINNE")], ["C", "O", "R", "I", "N_N", "E"]
@@ -96,6 +98,152 @@ class FontProof(unittest.TestCase):
             )
             self.assertNotEqual([n for n, w in self.shape(seq)], ["_".join(seq)])
 
+    def test_approved_refinements(self):
+        for pair in ["LI", "IN", "CG", "LY", "TA", "VA", "WA", "AV", "AW", "AL"]:
+            with self.subTest(pair=pair):
+                self.assertNotIn("_".join(pair), self.order)
+                self.assertEqual(
+                    [n for n, _ in self.shape(pair, dlig=True)], list(pair)
+                )
+        for word, expected in [
+            ("ALBUM", ["A", "L", "B", "U", "M"]),
+            ("BACCHUS", ["B_A", "C_C", "H", "U", "S"]),
+            ("GOLD", ["G_O", "L", "D"]),
+            ("COGENT", ["C_O_G", "E", "N", "T"]),
+        ]:
+            with self.subTest(word=word):
+                self.assertEqual([n for n, _ in self.shape(word, dlig=True)], expected)
+        self.assertEqual(self.shape("FABLE")[0][0], "F_A")
+        self.assertEqual(
+            [n for n, _ in self.shape("FATHER")],
+            ["F.join_A", "A.join_T", "T.join_H", "H.chain", "E", "R"],
+        )
+
+    def test_ak_af_and_tt_construction(self):
+        for pair, origin in [("HA", 480), ("MA", 548)]:
+            self.assertEqual(self.shape(pair)[0][0], "_".join(pair))
+            self.assertEqual(self.shape(pair, liga=False)[0][0], pair[0])
+            joined = pathops.Path()
+            left = pathops.Path()
+            a = pathops.Path()
+            self.glyphs["_".join(pair)].draw(joined.getPen())
+            self.glyphs[pair[0]].draw(left.getPen())
+            self.glyphs["A"].draw(a.getPen())
+            placed = a.transform(1, 0, 0, 1, origin, 0)
+            self.assertGreater(
+                abs(pathops.op(left, placed, pathops.PathOp.INTERSECTION).area), 1
+            )
+            self.assertFalse(
+                joined.contains((origin + 430, 430)), "Keep A's counter open"
+            )
+            self.assertTrue(joined.contains((70, 350)), "Keep the leading stem intact")
+        self.assertEqual(
+            [n for n, _ in self.shape("AFTER", dlig=True)],
+            ["A.join_F", "F.join_T", "T.join_E", "E.chain", "R"],
+        )
+        self.assertEqual(
+            [n for n, _ in self.shape("FAKIR", dlig=True)],
+            ["F.join_A", "A.join_K", "K.chain", "I", "R"],
+        )
+        for pair in ["AK", "AF"]:
+            self.assertEqual([n for n, _ in self.shape(pair)], list(pair))
+            self.assertEqual(
+                self.font["hmtx"]["_".join(pair)][0],
+                469 + self.font["hmtx"][pair[1]][0],
+            )
+        tt = pathops.Path()
+        self.glyphs["T_T"].draw(tt.getPen())
+        self.assertTrue(tt.contains((500, 670)), "TT must have one continuous flat cap")
+        self.assertTrue(tt.contains((294, 350)))
+        self.assertTrue(tt.contains((776, 350)))
+        self.assertFalse(tt.contains((500, 350)), "Keep the two T stems distinct")
+
+    def test_matched_shared_feet(self):
+        for suffix, low in [("", 34), (".sc", 21)]:
+            for name in ["A.foot", "A.foot.owned"]:
+                outline = pathops.Path()
+                self.glyphs[name + suffix].draw(outline.getPen())
+                straight = RecordingPen()
+                self.glyphs[name + suffix].draw(straight)
+                self.assertTrue(
+                    all(
+                        command in {"moveTo", "lineTo", "closePath"}
+                        for command, _ in straight.value
+                    ),
+                    "A's diagonal must stay straight",
+                )
+                self.assertEqual(
+                    len(list(outline.contours)), 2, "No detached foot fragments"
+                )
+                if name == "A.foot":
+                    self.assertEqual(outline.bounds[0], low)
+        variable_path = ROOT / "dist/fonts/Bathys-Variable.otf"
+        variable = TTFont(variable_path)
+        shaper = hb.Font(hb.Face(variable_path.read_bytes()))
+        order = variable.getGlyphOrder()
+        for width in [85, 100, 115]:
+            glyphs = variable.getGlyphSet(location={"wdth": width})
+            shaper.set_variations({"wdth": width})
+            for small in [False, True]:
+                for word, cap_edges, small_edges in [
+                    ("MA", (582, 648), (426, 484)),
+                    ("MARTIN", (582, 648), (426, 484)),
+                    ("HA", (514, 580), (376, 434)),
+                    ("HARMONY", (514, 580), (376, 434)),
+                ]:
+                    buffer = hb.Buffer()
+                    buffer.add_str(word)
+                    buffer.guess_segment_properties()
+                    hb.shape(shaper, buffer, {"c2sc": small})
+                    joined = pathops.Path()
+                    origin = 0
+                    for info, position in zip(
+                        buffer.glyph_infos, buffer.glyph_positions, strict=True
+                    ):
+                        outline = pathops.Path()
+                        glyphs[order[info.codepoint]].draw(outline.getPen())
+                        joined = pathops.op(
+                            joined,
+                            outline.transform(1, 0, 0, 1, origin, 0),
+                            pathops.PathOp.UNION,
+                        )
+                        origin += position.x_advance
+                    low, high = small_edges if small else cap_edges
+                    low, high = low * width / 100, high * width / 100
+                    for y in [0.5, 2, 3.5]:
+                        self.assertFalse(
+                            joined.contains((low - 0.01, y)), (word, small, width)
+                        )
+                        self.assertTrue(
+                            joined.contains((low + 0.01, y)), (word, small, width)
+                        )
+                        self.assertTrue(
+                            joined.contains((high - 0.01, y)), (word, small, width)
+                        )
+                        self.assertFalse(
+                            joined.contains((high + 0.01, y)), (word, small, width)
+                        )
+
+    def test_x_cap_return(self):
+        x = pathops.Path()
+        self.glyphs["X"].draw(x.getPen())
+        self.assertTrue(x.contains((430, 670)), "X needs the V/W cap return")
+        self.assertFalse(
+            x.contains((430, 620)), "Keep the diagonal below the hook clean"
+        )
+        self.assertEqual(x.bounds, (20, 0, 590, 700))
+        self.assertEqual(self.font["hmtx"]["X"][0], 610)
+
+    def test_smallcap_slash(self):
+        for features in [{"smcp": True}, {"c2sc": True}]:
+            self.assertEqual(self.shape("/", **features)[0][0], "slash.sc")
+        self.assertEqual(self.shape("/")[0][0], "slash")
+        outline = pathops.Path()
+        self.glyphs["slash.sc"].draw(outline.getPen())
+        self.assertLess(outline.bounds[3], 565)
+        self.assertGreater(outline.bounds[3], 518)
+        self.assertLess(self.font["hmtx"]["slash.sc"][0], self.font["hmtx"]["slash"][0])
+
     def test_tu_preserves_letter_identities(self):
         outline = pathops.Path()
         self.glyphs["T_U"].draw(outline.getPen())
@@ -114,6 +262,7 @@ class FontProof(unittest.TestCase):
     def test_spacing_pairs_do_not_collide(self):
         for text in [
             "TA",
+            "EY",
             "YA",
             "FA",
             "PA",
@@ -162,7 +311,6 @@ class FontProof(unittest.TestCase):
             "TV",
             "TX",
             "TZ",
-            "TT",
             "TY",
         ]:
             for suffix in ["", ".sc"]:
@@ -234,11 +382,11 @@ class FontProof(unittest.TestCase):
     def test_smallcaps(self):
         self.assertEqual(
             [n for n, w in self.shape("corinne", smcp=True, dlig=True)],
-            ["C_O_R.sc", "I.sc", "N_N.sc", "E.sc"],
+            ["C_O_R.sc", "I.sc", "N.join_N.sc", "N.join_E.sc", "E.chain.sc"],
         )
         self.assertEqual(
             [n for n, w in self.shape("CORINNE", c2sc=True, dlig=True)],
-            ["C_O_R.sc", "I.sc", "N_N.sc", "E.sc"],
+            ["C_O_R.sc", "I.sc", "N.join_N.sc", "N.join_E.sc", "E.chain.sc"],
         )
         self.assertEqual(self.shape("corinne"), self.shape("CORINNE"))
         for seq in LIGS:
@@ -255,6 +403,43 @@ class FontProof(unittest.TestCase):
         self.assertEqual(
             [n for n, w in self.shape("C O R")], ["C", "space", "O", "space", "R"]
         )
+
+    def test_ligature_switch_and_deployment_copy(self):
+        for word in ["FATHER", "THEATRE", "MILLION"]:
+            self.assertEqual(
+                self.shape(word.lower(), calt=False), self.shape(word, calt=False)
+            )
+        for word in ["AFTER", "COGENT", "CORINNE"]:
+            features = {"liga": False, "calt": False, "dlig": True}
+            self.assertEqual(
+                self.shape(word.lower(), **features), self.shape(word, **features)
+            )
+        for word in ["ATH", "BATH", "FATHER"]:
+            names = [name for name, _ in self.shape(word, liga=False, calt=True)]
+            self.assertEqual(names, list(word))
+        self.assertNotIn("I_L", self.order)
+        for word in ["MILLION", "million", "Million"]:
+            for liga in [False, True]:
+                for calt in [False, True]:
+                    self.assertEqual(
+                        sum(
+                            advance
+                            for _, advance in self.shape(word, liga=liga, calt=calt)
+                        ),
+                        sum(advance for _, advance in self.shape("MILLION")),
+                    )
+        for text in [
+            "MARTIN & MAYA",
+            "ANNE-MARIE O’NEILL",
+            "J. RAE / 11.11.2026",
+            "FRIDAY, 11 SEPTEMBER 2026",
+            "PRIVATE VIEW — 7:30 PM",
+            "ONE NIGHT ONLY!",
+        ]:
+            for features in [{"liga": False}, {"dlig": True}, {"c2sc": True}]:
+                result = self.shape(text, **features)
+                self.assertNotIn(".notdef", [name for name, _ in result], text)
+                self.assertTrue(all(advance > 0 for _, advance in result), text)
 
     def test_bidirectional_joining_without_ath_glyph(self):
         self.assertNotIn("A_T_H", self.order)
@@ -276,7 +461,10 @@ class FontProof(unittest.TestCase):
             [n for n, w in self.shape("BATH")],
             ["B.join_A", "A.join_T", "T.join_H", "H.chain"],
         )
-        self.assertEqual([n for n, w in self.shape("ATH", calt=False)], ["A_T", "H"])
+        self.assertEqual(self.shape("ATH", calt=False), self.shape("ATH"))
+        self.assertEqual(
+            [n for n, _ in self.shape("ATH", liga=False, calt=True)], ["A", "T", "H"]
+        )
         self.assertEqual(
             [n for n, w in self.shape("ATH", calt=False, liga=False)], ["A", "T", "H"]
         )
@@ -310,12 +498,99 @@ class FontProof(unittest.TestCase):
                     f"{left}.join_{right}"
                     for left, right in zip(run, run[1:], strict=False)
                 ] + [run[-1] + ".chain"]
+                for index in range(1, len(run)):
+                    if run[index] == "A" and run[index - 1] in "HM":
+                        expected[index] = expected[index].replace("A.", "A.foot.", 1)
                 self.assertEqual([n for n, w in self.shape(run)], expected, run)
                 self.assertEqual(
                     [n for n, w in self.shape(run.lower(), smcp=True)],
                     [n + ".sc" for n in expected],
                     run,
                 )
+
+    def test_optional_runs_compose_before_pair_substitution(self):
+        runs = set(ALL_JOIN_PAIRS)
+        for _ in range(3):
+            runs = {
+                run + right
+                for run in runs
+                for left, right in ALL_JOIN_PAIRS
+                if run[-1] == left
+            }
+            for run in runs:
+                expected = [
+                    f"{left}.join_{right}"
+                    for left, right in zip(run, run[1:], strict=False)
+                ] + [run[-1] + ".chain"]
+                for index in range(1, len(run)):
+                    if run[index] == "A" and run[index - 1] in "HM":
+                        expected[index] = expected[index].replace("A.", "A.foot.", 1)
+                # Existing three-letter circular drawings survive at run ends.
+                for sequence in DLIGS:
+                    if len(sequence) > 2 and run.endswith(sequence):
+                        expected[-len(sequence) :] = ["_".join(sequence)]
+                self.assertEqual(
+                    [name for name, _ in self.shape(run, dlig=True)], expected, run
+                )
+                self.assertEqual(
+                    [name for name, _ in self.shape(run.lower(), smcp=True, dlig=True)],
+                    [name + ".sc" for name in expected],
+                    run,
+                )
+        for run in ["ATE", "FATHER", "THEATRE", "ALATE", "COCORATE", "COGOGO"]:
+            self.assertNotIn("_".join(run), self.order)
+            for separator in [" ", "\u00a0", "-", "/"]:
+                separated = separator.join(run)
+                self.assertFalse(
+                    any(
+                        ".join_" in name for name, _ in self.shape(separated, dlig=True)
+                    )
+                )
+
+    def test_composed_joins_in_all_formats(self):
+        words = [
+            "ATE",
+            "FATHER",
+            "THEATRE",
+            "ALATE",
+            "COCOA",
+            "COGOGO",
+            "CORINNE",
+            "MARTIN",
+            "HARMONY",
+            "MAYA",
+        ]
+        for path in sorted((ROOT / "dist/fonts").iterdir()):
+            font = TTFont(path)
+            names = font.getGlyphOrder()
+            # Decode WOFF2 before passing it to the local HarfBuzz build.
+            decoded = BytesIO()
+            font.flavor = None
+            font.save(decoded)
+            shaper = hb.Font(hb.Face(decoded.getvalue()))
+            widths = [85, 100, 115] if "fvar" in font else [100]
+            for width in widths:
+                if "fvar" in font:
+                    shaper.set_variations({"wdth": width})
+                for optional in [False, True]:
+                    for small in [False, True]:
+                        features = {"dlig": optional, "c2sc": small}
+                        for word in words:
+                            buffer = hb.Buffer()
+                            buffer.add_str(word)
+                            buffer.guess_segment_properties()
+                            hb.shape(shaper, buffer, features)
+                            expected = self.shape(word, **features)
+                            self.assertEqual(
+                                [names[i.codepoint] for i in buffer.glyph_infos],
+                                [name for name, _ in expected],
+                                (path.name, word, width, features),
+                            )
+                            self.assertAlmostEqual(
+                                sum(p.x_advance for p in buffer.glyph_positions),
+                                sum(advance for _, advance in expected) * width / 100,
+                                delta=len(word) * 2,
+                            )
 
     def test_contextual_joins_in_words_and_at_boundaries(self):
         for word, middle in [
@@ -452,6 +727,12 @@ class FontProof(unittest.TestCase):
                 )
 
     def test_kerning(self):
+        self.assertEqual(self.shape("FA", liga=False, calt=False)[0], ("F", 175))
+        self.assertEqual(self.shape("FA")[0], ("F_A", 756))
+        self.assertEqual(self.shape("RT", liga=False)[0], ("R", 512))
+        self.assertEqual(self.shape("EA", liga=False)[0], ("E", 458))
+        self.assertEqual(self.shape("IL", liga=False)[0], ("I", 84))
+        self.assertEqual(self.shape("INNE", dlig=True)[0], self.shape("INN")[0])
         self.assertLess(
             sum(w for n, w in self.shape("AV", liga=False, calt=False)),
             sum(w for n, w in self.shape("AV", liga=False, calt=False, kern=False)),
@@ -465,6 +746,26 @@ class FontProof(unittest.TestCase):
                 )
             ),
         )
+
+    def test_u_terminal_spacing(self):
+        gaps = {}
+        for left in ["H", "M", "N", "U"]:
+            outline = pathops.Path()
+            self.glyphs[left].draw(outline.getPen())
+            gaps[left] = (
+                self.shape(left + "R", liga=False)[0][1] + 38 - outline.bounds[2]
+            )
+        self.assertEqual(gaps["U"], gaps["H"])
+        self.assertEqual(gaps["U"], gaps["M"])
+        self.assertEqual(gaps["U"], gaps["N"])
+
+    def test_lining_colon(self):
+        colon = pathops.Path()
+        self.glyphs["colon"].draw(colon.getPen())
+        self.assertTrue(colon.contains((65, 230)))
+        self.assertTrue(colon.contains((65, 470)))
+        self.assertFalse(colon.contains((65, 32)))
+        self.assertEqual((colon.bounds[1] + colon.bounds[3]) / 2, 350)
 
     def test_coverage(self):
         cmap = self.font.getBestCmap()
